@@ -67,7 +67,7 @@ namespace Common
             ProjectRestoreMetadataFrameworkInfo restoreMetadataFramework = packageSpec.GetRestoreMetadataFramework(framework.TargetFramework);
             foreach (var projectReference in restoreMetadataFramework.ProjectReferences)
             {
-                string inferedProjectName = Path.GetFileNameWithoutExtension(projectReference.ProjectPath);
+                string inferedProjectName = Path.GetFileNameWithoutExtension(projectReference.ProjectUniqueName);
                 // TODO - What if the package id differs from the project path? We'd miss that.
                 PackageDependencyNode node = packageIdToNode[inferedProjectName];
                 VersionRange versionRange = new(node.Identity.Version);
