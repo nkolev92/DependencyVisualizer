@@ -8,7 +8,7 @@ namespace Common.Test
     // TODO NK - Add descriptions in the tests.
     public class GraphBuilderTests
     {
-        [Fact(Skip = "Failing on linux")]
+        [Fact]
         public void FromAssetsFile_WithLargeGraph_ParsesCorrectRootNodeGraph()
         {
             var assetsFileText = TestHelpers.GetResource("Common.Test.compiler.resources.nuget.common.assets.json", GetType());
@@ -46,7 +46,7 @@ namespace Common.Test
             parentToChildEdge.Item2.Should().Be(expectedVersionRange); // Ensure the parent to child version range
         }
 
-        [Fact(Skip = "Failing on linux")]
+        [Fact]
         public void FromAssetsFile_WithSingleFramework_WithSingleProjectReference_ParsesGraphCorrectly()
         {
             var assetsFileText = TestHelpers.GetResource("Common.Test.compiler.resources.singleprojectreference.assets.json", GetType());
@@ -124,6 +124,24 @@ namespace Common.Test
         [Fact]
         public void FromAssetsFile_WithMultipleFrameworksAndDifferentPackageReferences_ParsesOnlyTheFirstGraphCorrectly()
         {
+        }
+
+        [Fact]
+        public void WTF()
+        {
+            var value = @"C:\Code\NuGet.Client\src\NuGet.Core\NuGet.Frameworks\NuGet.Frameworks.csproj";
+
+            var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(value);
+            fileNameWithoutExtension.Should().Be("NuGet.Frameworks");
+        }
+
+        [Fact]
+        public void WTF2()
+        {
+            var value = @"C:\Code\NuGet.Client\src\NuGet.Core\NuGet.Frameworks\NuGet.Frameworks.csproj";
+
+            var fileNameWithoutExtension = Path.GetFileName(value);
+            fileNameWithoutExtension.Should().Be("NuGet.Frameworks.csproj");
         }
     }
 }
