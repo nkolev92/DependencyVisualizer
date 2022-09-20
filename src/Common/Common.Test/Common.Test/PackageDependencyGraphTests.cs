@@ -134,5 +134,14 @@ namespace Common.Test
             var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(value);
             fileNameWithoutExtension.Should().Be("NuGet.Frameworks");
         }
+
+        [Fact]
+        public void WTF2()
+        {
+            var value = @"C:\Code\NuGet.Client\src\NuGet.Core\NuGet.Frameworks\NuGet.Frameworks.csproj";
+
+            var fileNameWithoutExtension = Path.GetFileName(value);
+            fileNameWithoutExtension.Should().Be("NuGet.Frameworks.csproj");
+        }
     }
 }
