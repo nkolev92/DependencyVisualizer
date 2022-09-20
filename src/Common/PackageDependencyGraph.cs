@@ -30,7 +30,7 @@ namespace Common
                 throw new InvalidProgramException("There are no valid frameworks to process in the assets file");
             }
 
-            return GenerateGraphForAGivenFramework(projectIdentity, frameworks[0], assetsFile.PackageSpec); 
+            return GenerateGraphForAGivenFramework(projectIdentity, frameworks[0], assetsFile.PackageSpec);
             // TODO https://github.com/nkolev92/DependencyVisualizer/issues/1 - What should we do in the multi framework case?
 
         }
@@ -100,7 +100,7 @@ namespace Common
                 throw new ArgumentNullException(nameof(fileName));
             }
 
-            LockFile assetsFile = new LockFileFormat().Read(fileName); // TODO - https://github.com/nkolev92/DependencyVisualizer/issues/5
+            return new LockFileFormat().Read(fileName); // TODO - https://github.com/nkolev92/DependencyVisualizer/issues/5
         }
     }
 }
