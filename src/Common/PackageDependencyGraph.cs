@@ -60,23 +60,26 @@ namespace Common
             {
                 var node = packageIdToNode[packageDependency.Name];
                 graph.Node.ChildNodes.Add((node, packageDependency.LibraryRange.VersionRange));
+                node.ParentNodes.Add((graph.Node, packageDependency.LibraryRange.VersionRange));
             }
 
             // Populate edge cost for direct ProjectReferences
             ProjectRestoreMetadataFrameworkInfo restoreMetadataFramework = packageSpec.GetRestoreMetadataFramework(framework.TargetFramework);
             foreach (var projectReference in restoreMetadataFramework.ProjectReferences)
             {
-                var inferedProjectName = Path.GetFileNameWithoutExtension(projectReference.ProjectPath);
+                string inferedProjectName = Path.GetFileNameWithoutExtension(projectReference.ProjectUniqueName);
                 // TODO - What if the package id differs from the project path? We'd miss that.
-                var node = packageIdToNode[inferedProjectName];
-                graph.Node.ChildNodes.Add((node, new VersionRange(node.Identity.Version)));
+                PackageDependencyNode node = packageIdToNode[inferedProjectName];
+                VersionRange versionRange = new(node.Identity.Version);
+                graph.Node.ChildNodes.Add((node, versionRange));
+                node.ParentNodes.Add((graph.Node, versionRange));
             }
 
             return graph;
 
             static Dictionary<string, PackageDependencyNode> GenerateNodesForAllPackagesInGraph(LockFileTarget framework)
             {
-                var seenPackages = new Dictionary<string, PackageDependencyNode>();
+                var seenPackages = new Dictionary<string, PackageDependencyNode>(StringComparer.OrdinalIgnoreCase);
 
                 foreach (LockFileTargetLibrary package in framework.Libraries)
                 {
