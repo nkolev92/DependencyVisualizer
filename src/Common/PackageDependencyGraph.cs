@@ -1,60 +1,96 @@
 ﻿using NuGet.Packaging.Core;
 using NuGet.ProjectModel;
 using NuGet.Versioning;
+using System.Diagnostics;
 
 namespace Common
 {
+    [DebuggerDisplay("{Node}")]
     public class PackageDependencyGraph : Graph<PackageIdentity, VersionRange>
     {
         public PackageDependencyGraph(Node<PackageIdentity, VersionRange> node) : base(node)
         {
         }
 
+        /// <summary>
+        /// Generate a graph given an assets file
+        /// </summary>
+        /// <param name="assetsFile">The assets file must not be null.</param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public static PackageDependencyGraph FromAssetsFile(LockFile assetsFile)
         {
-            if (assetsFile != null)
+            ArgumentNullException.ThrowIfNull(assetsFile);
+            PackageIdentity projectIdentity = new(assetsFile.PackageSpec.Name, assetsFile.PackageSpec.Version);
+
+            List<LockFileTarget> frameworks = assetsFile.Targets.Where(e => string.IsNullOrEmpty(e.RuntimeIdentifier)).ToList();
+
+            if (frameworks.Count == 0)
             {
-                PackageIdentity projectName = new(assetsFile.PackageSpec.Name, assetsFile.PackageSpec.Version);
-                PackageDependencyGraph graph = new(new PackageDependencyNode(projectName));
-
-                foreach (var framework in assetsFile.Targets.Where(e => string.IsNullOrEmpty(e.RuntimeIdentifier)))
-                {
-                    Dictionary<string, PackageDependencyNode> seenPackages = GenerateNodesForAllPackagesInGraph(framework);
-                    seenPackages.Add(graph.Node.Identity.Id, (PackageDependencyNode)graph.Node); // Make sure we have the current project.
-
-                    foreach (var package in framework.Libraries)
-                    {
-                        var currentPackageNode = seenPackages[package.Name];
-
-                        foreach (PackageDependency dependency in package.Dependencies)
-                        {
-                            PackageDependencyNode packageDependencyNode = seenPackages[dependency.Id];
-
-                            currentPackageNode.ChildNodes.Add((packageDependencyNode, dependency.VersionRange));
-                            packageDependencyNode.ParentNodes.Add((currentPackageNode, dependency.VersionRange));
-                        }
-                    }
-
-                    foreach (var package in seenPackages)
-                    {
-                        if (package.Key != graph.Node.Identity.Id)
-                        {
-                            if (package.Value.ParentNodes.Count == 0)
-                            {
-                                graph.Node.ChildNodes.Add((package.Value, new VersionRange(package.Value.Identity.Version))); // Add the correct version range.
-                            }
-                        }
-                    }
-                    break; // Be done after one walk.
-                    // Add a property to indicate the `Type`, ie. Project vs Package
-                }
-                return graph;
+                throw new InvalidProgramException("There are no valid frameworks to process in the assets file");
             }
 
-            throw new InvalidOperationException("Could not parse assets file. Cannot generate the graph.");
+            return GenerateGraphForAGivenFramework(projectIdentity, frameworks[0], assetsFile.PackageSpec); // TODO https://github.com/nkolev92/DependencyVisualizer/issues/1 - What should we do in the multi framework case?
+
         }
 
-        private static LockFile GetAssetsFile(string fileName)
+        private static PackageDependencyGraph GenerateGraphForAGivenFramework(PackageIdentity projectIdentity, LockFileTarget framework, PackageSpec packageSpec)
+        {
+            PackageDependencyGraph graph = new(new PackageDependencyNode(projectIdentity));
+
+            Dictionary<string, PackageDependencyNode> packageIdToNode = GenerateNodesForAllPackagesInGraph(framework);
+            packageIdToNode.Add(graph.Node.Identity.Id, (PackageDependencyNode)graph.Node);
+
+            // Populate Node to Node edges
+            foreach (var package in framework.Libraries)
+            {
+                var currentPackageNode = packageIdToNode[package.Name];
+                foreach (PackageDependency dependency in package.Dependencies)
+                {
+                    PackageDependencyNode packageDependencyNode = packageIdToNode[dependency.Id];
+
+                    currentPackageNode.ChildNodes.Add((packageDependencyNode, dependency.VersionRange));
+                    packageDependencyNode.ParentNodes.Add((currentPackageNode, dependency.VersionRange));
+                }
+            }
+
+            // Populate edge cost for direct PackageReferences
+            TargetFrameworkInformation targetFrameworkInformation = packageSpec.GetTargetFramework(framework.TargetFramework);
+            foreach (var packageDependency in targetFrameworkInformation.Dependencies)
+            {
+                var node = packageIdToNode[packageDependency.Name];
+                graph.Node.ChildNodes.Add((node, packageDependency.LibraryRange.VersionRange));
+            }
+
+            // Populate edge cost for direct ProjectReferences
+            ProjectRestoreMetadataFrameworkInfo restoreMetadataFramework = packageSpec.GetRestoreMetadataFramework(framework.TargetFramework);
+            foreach (var projectReference in restoreMetadataFramework.ProjectReferences)
+            {
+                var inferedProjectName = Path.GetFileNameWithoutExtension(projectReference.ProjectPath);
+                // TODO - What if the package id differs from the project path? We'd miss that.
+                var node = packageIdToNode[inferedProjectName];
+                graph.Node.ChildNodes.Add((node, new VersionRange(node.Identity.Version)));
+            }
+
+            return graph;
+
+            static Dictionary<string, PackageDependencyNode> GenerateNodesForAllPackagesInGraph(LockFileTarget framework)
+            {
+                var seenPackages = new Dictionary<string, PackageDependencyNode>();
+
+                foreach (LockFileTargetLibrary package in framework.Libraries)
+                {
+                    PackageDependencyNode currentPackageNode = new(new PackageIdentity(package.Name, package.Version));
+                    seenPackages.Add(package.Name, currentPackageNode);
+                }
+
+                // TODO - Add a property to indicate the `Type`, ie. Project vs Package
+
+                return seenPackages;
+            }
+        }
+
+        internal static LockFile GetAssetsFile(string fileName)
         {
             if (string.IsNullOrWhiteSpace(fileName))
             {
@@ -63,19 +99,6 @@ namespace Common
 
             LockFile assetsFile = new LockFileFormat().Read(fileName); // TODO - Pass a logger.
             return assetsFile;
-        }
-
-        private static Dictionary<string, PackageDependencyNode> GenerateNodesForAllPackagesInGraph(LockFileTarget framework)
-        {
-            var seenPackages = new Dictionary<string, PackageDependencyNode>();
-
-            foreach (LockFileTargetLibrary package in framework.Libraries)
-            {
-                PackageDependencyNode currentPackageNode = new(new PackageIdentity(package.Name, package.Version));
-                seenPackages.Add(package.Name, currentPackageNode);
-            }
-
-            return seenPackages;
         }
     }
 }

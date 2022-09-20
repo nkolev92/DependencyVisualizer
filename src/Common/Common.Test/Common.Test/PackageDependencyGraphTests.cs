@@ -14,7 +14,6 @@ namespace Common.Test
             var graph = PackageDependencyGraph.FromAssetsFile(assetsFile);
 
             graph.Node.Identity.Id.Should().Be("NuGet.Common");
-
         }
     }
 }
