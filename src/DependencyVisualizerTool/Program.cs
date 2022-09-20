@@ -1,11 +1,19 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using System.CommandLine;
 
-Console.WriteLine("Hello, World!");
-
 var fileOption = new Option<FileInfo?>(
             name: "--file",
-            description: "The file to read and display on the console.");
+            description: "The file to read and display on the console.",
+            parseArgument: result =>
+            {
+                string? filePath = result.Tokens.Single().Value;
+                if (!File.Exists(filePath))
+                {
+                    result.ErrorMessage = "File does not exists";
+                    return null;
+                }
+                return new FileInfo(filePath);
+            });
 
 var delayOption = new Option<int>(
     name: "--delay",
@@ -16,7 +24,7 @@ var lightModeOption = new Option<bool>(
     name: "--light-mode",
     description: "Background color of text displayed on the console: default is black, light mode is white.");
 
-var rootCommand = new RootCommand("Sample app for System.CommandLine");
+var rootCommand = new RootCommand("Dependency visualizer app for System.CommandLine");
 
 var readCommand = new Command("read", "Read and display the file.")
             {
