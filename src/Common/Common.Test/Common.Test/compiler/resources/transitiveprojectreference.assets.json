@@ -1,0 +1,131 @@
+﻿{
+  "version": 3,
+  "targets": {
+    "net6.0": {
+      "NuGet.Versioning/6.3.0": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/NuGet.Versioning.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/NuGet.Versioning.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "LeafProject/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v6.0",
+        "dependencies": {
+          "nuget.versioning": "6.3.0"
+        },
+        "compile": {
+          "bin/placeholder/LeafProject.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/LeafProject.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "NuGet.Versioning/6.3.0": {
+      "sha512": "9cQMmhbwR92SSep1y4MMapjrJdcnzcnSWHec3yrB9EMyIjOhiXkwYX9lZ8fkYUxBskwXw8mAEwvY8b7yGRFbAg==",
+      "type": "package",
+      "path": "nuget.versioning/6.3.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "icon.png",
+        "lib/net472/NuGet.Versioning.dll",
+        "lib/net472/NuGet.Versioning.xml",
+        "lib/netstandard2.0/NuGet.Versioning.dll",
+        "lib/netstandard2.0/NuGet.Versioning.xml",
+        "nuget.versioning.6.3.0.nupkg.sha512",
+        "nuget.versioning.nuspec"
+      ]
+    },
+    "LeafProject/1.0.0": {
+      "type": "project",
+      "path": "../LeafProject/LeafProject.csproj",
+      "msbuildProject": "../LeafProject/LeafProject.csproj"
+    }
+  },
+  "projectFileDependencyGroups": {
+    "net6.0": [
+      "LeafProject >= 1.0.0"
+    ]
+  },
+  "packageFolders": {
+    "C:\\Users\\Roki2\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {},
+    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "C:\\Code\\Temp\\VisualizerSamples\\TransitiveProjectReference\\ParentProject\\ParentProject.csproj",
+      "projectName": "ParentProject",
+      "projectPath": "C:\\Code\\Temp\\VisualizerSamples\\TransitiveProjectReference\\ParentProject\\ParentProject.csproj",
+      "packagesPath": "C:\\Users\\Roki2\\.nuget\\packages\\",
+      "outputPath": "C:\\Code\\Temp\\VisualizerSamples\\TransitiveProjectReference\\ParentProject\\obj\\",
+      "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
+        "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+      ],
+      "configFilePaths": [
+        "C:\\Code\\NuGet.Config",
+        "C:\\Users\\Roki2\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+      ],
+      "originalTargetFrameworks": [
+        "net6.0"
+      ],
+      "sources": {
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net6.0": {
+          "targetAlias": "net6.0",
+          "projectReferences": {
+            "C:\\Code\\Temp\\VisualizerSamples\\TransitiveProjectReference\\LeafProject\\LeafProject.csproj": {
+              "projectPath": "C:\\Code\\Temp\\VisualizerSamples\\TransitiveProjectReference\\LeafProject\\LeafProject.csproj"
+            }
+          }
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      }
+    },
+    "frameworks": {
+      "net6.0": {
+        "targetAlias": "net6.0",
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48",
+          "net481"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          }
+        },
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.400\\RuntimeIdentifierGraph.json"
+      }
+    }
+  }
+}

@@ -30,7 +30,8 @@ namespace Common
                 throw new InvalidProgramException("There are no valid frameworks to process in the assets file");
             }
 
-            return GenerateGraphForAGivenFramework(projectIdentity, frameworks[0], assetsFile.PackageSpec); // TODO https://github.com/nkolev92/DependencyVisualizer/issues/1 - What should we do in the multi framework case?
+            return GenerateGraphForAGivenFramework(projectIdentity, frameworks[0], assetsFile.PackageSpec);
+            // TODO https://github.com/nkolev92/DependencyVisualizer/issues/1 - What should we do in the multi framework case?
 
         }
 
@@ -67,11 +68,9 @@ namespace Common
             ProjectRestoreMetadataFrameworkInfo restoreMetadataFramework = packageSpec.GetRestoreMetadataFramework(framework.TargetFramework);
             foreach (var projectReference in restoreMetadataFramework.ProjectReferences)
             {
+                string inferedProjectName = Path.GetFileNameWithoutExtension(projectReference.ProjectPath);
+                // TODO - https://github.com/nkolev92/DependencyVisualizer/issues/6 What if the package id differs from the project path? We'd miss that.
 
-                string inferedProjectName = Path.GetFileNameWithoutExtension(projectReference.ProjectPath); //convert? Checked in assets file.
-                
-
-                // TODO - What if the package id differs from the project path? We'd miss that.
                 PackageDependencyNode node = packageIdToNode[inferedProjectName];
                 VersionRange versionRange = new(node.Identity.Version);
                 graph.Node.ChildNodes.Add((node, versionRange));
@@ -90,8 +89,6 @@ namespace Common
                     seenPackages.Add(package.Name, currentPackageNode);
                 }
 
-                // TODO - Add a property to indicate the `Type`, ie. Project vs Package
-
                 return seenPackages;
             }
         }
@@ -103,8 +100,7 @@ namespace Common
                 throw new ArgumentNullException(nameof(fileName));
             }
 
-            LockFile assetsFile = new LockFileFormat().Read(fileName); // TODO - Pass a logger.
-            return assetsFile;
+            return new LockFileFormat().Read(fileName); // TODO - https://github.com/nkolev92/DependencyVisualizer/issues/5
         }
     }
 }
