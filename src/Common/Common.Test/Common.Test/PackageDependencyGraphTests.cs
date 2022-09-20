@@ -125,5 +125,14 @@ namespace Common.Test
         public void FromAssetsFile_WithMultipleFrameworksAndDifferentPackageReferences_ParsesOnlyTheFirstGraphCorrectly()
         {
         }
+
+        [Fact]
+        public void WTF()
+        {
+            var value = @"C:\Code\NuGet.Client\src\NuGet.Core\NuGet.Frameworks\NuGet.Frameworks.csproj";
+
+            var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(value);
+            fileNameWithoutExtension.Should().Be("NuGet.Frameworks");
+        }
     }
 }
