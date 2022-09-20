@@ -6,9 +6,9 @@ namespace Common
 {
     [DebuggerDisplay("{Identity}")]
 
-    public class PackageDependencyNode : Node<PackageIdentity, VersionRange>
+    public class PackageDependencyNode : Node<DependencyNodeIdentity, VersionRange>
     {
-        public PackageDependencyNode(PackageIdentity identity) : base(identity)
+        public PackageDependencyNode(DependencyNodeIdentity identity) : base(identity)
         {
         }
 

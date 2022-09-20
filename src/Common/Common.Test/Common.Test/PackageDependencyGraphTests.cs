@@ -1,5 +1,4 @@
 using FluentAssertions;
-using NuGet.Packaging.Core;
 using NuGet.ProjectModel;
 using NuGet.Versioning;
 
@@ -20,36 +19,36 @@ namespace Common.Test
             graph.Node.ChildNodes.Should().HaveCount(5);
 
             // Ensure NuGet.Common => Microsoft.CodeAnalysis.BannedApiAnalyzers
-            (Node<PackageIdentity, VersionRange>, VersionRange) bannedApiAnalyzers = graph.Node.ChildNodes[0];
-            bannedApiAnalyzers.Item1.Identity.Should().Be(new PackageIdentity("Microsoft.CodeAnalysis.BannedApiAnalyzers", new NuGetVersion(3, 3, 2)));
+            (Node<DependencyNodeIdentity, VersionRange>, VersionRange) bannedApiAnalyzers = graph.Node.ChildNodes[0];
+            bannedApiAnalyzers.Item1.Identity.Should().Be(new DependencyNodeIdentity("Microsoft.CodeAnalysis.BannedApiAnalyzers", new NuGetVersion(3, 3, 2), DependencyType.Package));
             bannedApiAnalyzers.Item1.ParentNodes.Should().HaveCount(1);
             bannedApiAnalyzers.Item1.ChildNodes.Should().HaveCount(0);
             ValidateBidirectionalEdges(graph.Node, bannedApiAnalyzers, VersionRange.Parse("3.3.2"));
 
             // Ensure NuGet.Common => Microsoft.CodeAnalysis.FxCopAnalyzers
-            (Node<PackageIdentity, VersionRange>, VersionRange) fxCopAnalyzers = graph.Node.ChildNodes[1];
-            fxCopAnalyzers.Item1.Identity.Should().Be(new PackageIdentity("Microsoft.CodeAnalysis.FxCopAnalyzers", new NuGetVersion(2, 9, 8)));
+            (Node<DependencyNodeIdentity, VersionRange>, VersionRange) fxCopAnalyzers = graph.Node.ChildNodes[1];
+            fxCopAnalyzers.Item1.Identity.Should().Be(new DependencyNodeIdentity("Microsoft.CodeAnalysis.FxCopAnalyzers", new NuGetVersion(2, 9, 8), DependencyType.Package));
             fxCopAnalyzers.Item1.ParentNodes.Should().HaveCount(1);
             fxCopAnalyzers.Item1.ChildNodes.Should().HaveCount(4);
             ValidateBidirectionalEdges(graph.Node, fxCopAnalyzers, VersionRange.Parse("2.9.8"));
 
             // Ensure NuGet.Common => Microsoft.CodeAnalysis.PublicApiAnalyzers
-            (Node<PackageIdentity, VersionRange>, VersionRange) publicApiAnalyzers = graph.Node.ChildNodes[2];
-            publicApiAnalyzers.Item1.Identity.Should().Be(new PackageIdentity("Microsoft.CodeAnalysis.PublicApiAnalyzers", new NuGetVersion(3, 0, 0)));
+            (Node<DependencyNodeIdentity, VersionRange>, VersionRange) publicApiAnalyzers = graph.Node.ChildNodes[2];
+            publicApiAnalyzers.Item1.Identity.Should().Be(new DependencyNodeIdentity("Microsoft.CodeAnalysis.PublicApiAnalyzers", new NuGetVersion(3, 0, 0), DependencyType.Package));
             publicApiAnalyzers.Item1.ParentNodes.Should().HaveCount(1);
             publicApiAnalyzers.Item1.ChildNodes.Should().HaveCount(0);
             ValidateBidirectionalEdges(graph.Node, publicApiAnalyzers, VersionRange.Parse("3.0.0"));
 
             // Ensure NuGet.Common => Microsoft.SourceLink.GitHub
-            (Node<PackageIdentity, VersionRange>, VersionRange) sourcelink = graph.Node.ChildNodes[3];
-            sourcelink.Item1.Identity.Should().Be(new PackageIdentity("Microsoft.SourceLink.GitHub", new NuGetVersion(1, 0, 0)));
+            (Node<DependencyNodeIdentity, VersionRange>, VersionRange) sourcelink = graph.Node.ChildNodes[3];
+            sourcelink.Item1.Identity.Should().Be(new DependencyNodeIdentity("Microsoft.SourceLink.GitHub", new NuGetVersion(1, 0, 0), DependencyType.Package));
             sourcelink.Item1.ParentNodes.Should().HaveCount(1);
             sourcelink.Item1.ChildNodes.Should().HaveCount(2);
             ValidateBidirectionalEdges(graph.Node, sourcelink, VersionRange.Parse("1.0.0"));
 
             // Ensure NuGet.Common => NuGet.Frameworks
-            (Node<PackageIdentity, VersionRange>, VersionRange) nugetFrameworks = graph.Node.ChildNodes[4];
-            nugetFrameworks.Item1.Identity.Should().Be(new PackageIdentity("NuGet.Frameworks", new NuGetVersion(6, 4, 0, "preview.3.32767")));
+            (Node<DependencyNodeIdentity, VersionRange>, VersionRange) nugetFrameworks = graph.Node.ChildNodes[4];
+            nugetFrameworks.Item1.Identity.Should().Be(new DependencyNodeIdentity("NuGet.Frameworks", new NuGetVersion(6, 4, 0, "preview.3.32767"), DependencyType.Project));
             nugetFrameworks.Item1.ParentNodes.Should().HaveCount(1);
             nugetFrameworks.Item1.ChildNodes.Should().HaveCount(0);
             ValidateBidirectionalEdges(graph.Node, nugetFrameworks, VersionRange.Parse("6.4.0-preview.3.32767"));
@@ -67,8 +66,8 @@ namespace Common.Test
             graph.Node.Identity.Id.Should().Be("SingleProjectSingleFramework");
             graph.Node.ParentNodes.Should().HaveCount(0);
             graph.Node.ChildNodes.Should().HaveCount(1);
-            (Node<PackageIdentity, VersionRange>, VersionRange) newtonsoftJsonNode = graph.Node.ChildNodes[0];
-            newtonsoftJsonNode.Item1.Identity.Should().Be(new PackageIdentity("Newtonsoft.json", new NuGetVersion(13, 0, 1)));
+            (Node<DependencyNodeIdentity, VersionRange>, VersionRange) newtonsoftJsonNode = graph.Node.ChildNodes[0];
+            newtonsoftJsonNode.Item1.Identity.Should().Be(new DependencyNodeIdentity("Newtonsoft.json", new NuGetVersion(13, 0, 1), DependencyType.Package));
             newtonsoftJsonNode.Item1.ParentNodes.Should().HaveCount(1);
             newtonsoftJsonNode.Item1.ChildNodes.Should().HaveCount(0);
             ValidateBidirectionalEdges(graph.Node, newtonsoftJsonNode, VersionRange.Parse("13.0.1"));
@@ -88,8 +87,8 @@ namespace Common.Test
             graph.Node.ChildNodes.Should().HaveCount(1);
 
             // Ensure Parent => Leaf
-            (Node<PackageIdentity, VersionRange>, VersionRange) leafNode = graph.Node.ChildNodes[0];
-            leafNode.Item1.Identity.Should().Be(new PackageIdentity("Leaf", new NuGetVersion(3, 0, 0)));
+            (Node<DependencyNodeIdentity, VersionRange>, VersionRange) leafNode = graph.Node.ChildNodes[0];
+            leafNode.Item1.Identity.Should().Be(new DependencyNodeIdentity("Leaf", new NuGetVersion(3, 0, 0), DependencyType.Project));
             leafNode.Item1.ParentNodes.Should().HaveCount(1);
             leafNode.Item1.ChildNodes.Should().HaveCount(0);
             ValidateBidirectionalEdges(graph.Node, leafNode, VersionRange.Parse("3.0.0"));
@@ -109,15 +108,15 @@ namespace Common.Test
             graph.Node.ChildNodes.Should().HaveCount(1);
 
             // Ensure TransitivePackageReference => NuGet.Common
-            (Node<PackageIdentity, VersionRange>, VersionRange) directPackageReference = graph.Node.ChildNodes[0];
-            directPackageReference.Item1.Identity.Should().Be(new PackageIdentity("NuGet.Common", new NuGetVersion(6, 3, 0)));
+            (Node<DependencyNodeIdentity, VersionRange>, VersionRange) directPackageReference = graph.Node.ChildNodes[0];
+            directPackageReference.Item1.Identity.Should().Be(new DependencyNodeIdentity("NuGet.Common", new NuGetVersion(6, 3, 0), DependencyType.Package));
             directPackageReference.Item1.ParentNodes.Should().HaveCount(1);
             directPackageReference.Item1.ChildNodes.Should().HaveCount(1);
             ValidateBidirectionalEdges(graph.Node, directPackageReference, VersionRange.Parse("6.3.0"));
 
             // Ensure NuGet.Common => NuGet.Versioning
             var transitivePackageReference = directPackageReference.Item1.ChildNodes[0];
-            transitivePackageReference.Item1.Identity.Should().Be(new PackageIdentity("NuGet.Frameworks", new NuGetVersion(6, 3, 0)));
+            transitivePackageReference.Item1.Identity.Should().Be(new DependencyNodeIdentity("NuGet.Frameworks", new NuGetVersion(6, 3, 0), DependencyType.Package));
             transitivePackageReference.Item1.ParentNodes.Should().HaveCount(1);
             transitivePackageReference.Item1.ChildNodes.Should().HaveCount(0);
             ValidateBidirectionalEdges(directPackageReference.Item1, transitivePackageReference, VersionRange.Parse("6.3.0"));
@@ -139,15 +138,15 @@ namespace Common.Test
             graph.Node.ChildNodes.Should().HaveCount(1);
 
             // Ensure ParentProject => LeafProject
-            (Node<PackageIdentity, VersionRange>, VersionRange) directPackageReference = graph.Node.ChildNodes[0];
-            directPackageReference.Item1.Identity.Should().Be(new PackageIdentity("LeafProject", new NuGetVersion(1, 0, 0)));
+            (Node<DependencyNodeIdentity, VersionRange>, VersionRange) directPackageReference = graph.Node.ChildNodes[0];
+            directPackageReference.Item1.Identity.Should().Be(new DependencyNodeIdentity("LeafProject", new NuGetVersion(1, 0, 0), DependencyType.Project));
             directPackageReference.Item1.ParentNodes.Should().HaveCount(1);
             directPackageReference.Item1.ChildNodes.Should().HaveCount(1);
             ValidateBidirectionalEdges(graph.Node, directPackageReference, VersionRange.Parse("1.0.0"));
 
             // Ensure NuGet.Common => NuGet.Versioning
             var transitivePackageReference = directPackageReference.Item1.ChildNodes[0];
-            transitivePackageReference.Item1.Identity.Should().Be(new PackageIdentity("NuGet.Versioning", new NuGetVersion(6, 3, 0)));
+            transitivePackageReference.Item1.Identity.Should().Be(new DependencyNodeIdentity("NuGet.Versioning", new NuGetVersion(6, 3, 0), DependencyType.Package));
             transitivePackageReference.Item1.ParentNodes.Should().HaveCount(1);
             transitivePackageReference.Item1.ChildNodes.Should().HaveCount(0);
             ValidateBidirectionalEdges(directPackageReference.Item1, transitivePackageReference, VersionRange.Parse("6.3.0"));
@@ -168,15 +167,15 @@ namespace Common.Test
             graph.Node.ChildNodes.Should().HaveCount(1);
 
             // Ensure Project => NuGet.Common
-            (Node<PackageIdentity, VersionRange>, VersionRange) directPackageReference = graph.Node.ChildNodes[0];
-            directPackageReference.Item1.Identity.Should().Be(new PackageIdentity("NuGet.Common", new NuGetVersion(6, 3, 0)));
+            (Node<DependencyNodeIdentity, VersionRange>, VersionRange) directPackageReference = graph.Node.ChildNodes[0];
+            directPackageReference.Item1.Identity.Should().Be(new DependencyNodeIdentity("NuGet.Common", new NuGetVersion(6, 3, 0), DependencyType.Package));
             directPackageReference.Item1.ParentNodes.Should().HaveCount(1);
             directPackageReference.Item1.ChildNodes.Should().HaveCount(1);
             ValidateBidirectionalEdges(graph.Node, directPackageReference, VersionRange.Parse("6.2.5"));
 
             // Ensure NuGet.Common => NuGet.Frameworks
             var transitivePackageReference = directPackageReference.Item1.ChildNodes[0];
-            transitivePackageReference.Item1.Identity.Should().Be(new PackageIdentity("NuGet.Frameworks", new NuGetVersion(6, 3, 0)));
+            transitivePackageReference.Item1.Identity.Should().Be(new DependencyNodeIdentity("NuGet.Frameworks", new NuGetVersion(6, 3, 0), DependencyType.Package));
             transitivePackageReference.Item1.ParentNodes.Should().HaveCount(1);
             transitivePackageReference.Item1.ChildNodes.Should().HaveCount(0);
             ValidateBidirectionalEdges(directPackageReference.Item1, transitivePackageReference, VersionRange.Parse("6.3.0"));
@@ -197,29 +196,29 @@ namespace Common.Test
             graph.Node.ChildNodes.Should().HaveCount(2);
 
             // Ensure Project => Newtonsoft.Json.Bson
-            (Node<PackageIdentity, VersionRange>, VersionRange) newtonsoftjsonbson = graph.Node.ChildNodes[0];
-            newtonsoftjsonbson.Item1.Identity.Should().Be(new PackageIdentity("Newtonsoft.Json.Bson", new NuGetVersion(1, 0, 2)));
+            (Node<DependencyNodeIdentity, VersionRange>, VersionRange) newtonsoftjsonbson = graph.Node.ChildNodes[0];
+            newtonsoftjsonbson.Item1.Identity.Should().Be(new DependencyNodeIdentity("Newtonsoft.Json.Bson", new NuGetVersion(1, 0, 2), DependencyType.Package));
             newtonsoftjsonbson.Item1.ParentNodes.Should().HaveCount(1);
             newtonsoftjsonbson.Item1.ChildNodes.Should().HaveCount(1);
             ValidateBidirectionalEdges(graph.Node, newtonsoftjsonbson, VersionRange.Parse("1.0.2"));
 
             // Ensure Project => NuGet.Common
-            (Node<PackageIdentity, VersionRange>, VersionRange) nugetcommon = graph.Node.ChildNodes[1];
-            nugetcommon.Item1.Identity.Should().Be(new PackageIdentity("NuGet.Common", new NuGetVersion(6, 3, 0)));
+            (Node<DependencyNodeIdentity, VersionRange>, VersionRange) nugetcommon = graph.Node.ChildNodes[1];
+            nugetcommon.Item1.Identity.Should().Be(new DependencyNodeIdentity("NuGet.Common", new NuGetVersion(6, 3, 0), DependencyType.Package));
             nugetcommon.Item1.ParentNodes.Should().HaveCount(1);
             nugetcommon.Item1.ChildNodes.Should().HaveCount(1);
             ValidateBidirectionalEdges(graph.Node, nugetcommon, VersionRange.Parse("6.3.0"));
 
             // Ensure NuGet.Common => NuGet.Versioning
             var nugetversioning = nugetcommon.Item1.ChildNodes[0];
-            nugetversioning.Item1.Identity.Should().Be(new PackageIdentity("NuGet.Frameworks", new NuGetVersion(6, 3, 0)));
+            nugetversioning.Item1.Identity.Should().Be(new DependencyNodeIdentity("NuGet.Frameworks", new NuGetVersion(6, 3, 0), DependencyType.Package));
             nugetversioning.Item1.ParentNodes.Should().HaveCount(1);
             nugetversioning.Item1.ChildNodes.Should().HaveCount(0);
             ValidateBidirectionalEdges(nugetcommon.Item1, nugetversioning, VersionRange.Parse("6.3.0"));
 
             // Ensure Newtonsoft.Json.Bson => Newtonsoft.Json
             var newtonsoftjson = newtonsoftjsonbson.Item1.ChildNodes[0];
-            newtonsoftjson.Item1.Identity.Should().Be(new PackageIdentity("Newtonsoft.Json", new NuGetVersion(12, 0, 1)));
+            newtonsoftjson.Item1.Identity.Should().Be(new DependencyNodeIdentity("Newtonsoft.Json", new NuGetVersion(12, 0, 1), DependencyType.Package));
             newtonsoftjson.Item1.ParentNodes.Should().HaveCount(1);
             newtonsoftjson.Item1.ChildNodes.Should().HaveCount(0);
             ValidateBidirectionalEdges(newtonsoftjsonbson.Item1, newtonsoftjson, VersionRange.Parse("12.0.1"));
@@ -240,29 +239,29 @@ namespace Common.Test
             graph.Node.ChildNodes.Should().HaveCount(2);
 
             // Ensure TestProject => A
-            (Node<PackageIdentity, VersionRange>, VersionRange) a = graph.Node.ChildNodes[0];
-            a.Item1.Identity.Should().Be(new PackageIdentity("A", new NuGetVersion(1, 0, 0)));
+            (Node<DependencyNodeIdentity, VersionRange>, VersionRange) a = graph.Node.ChildNodes[0];
+            a.Item1.Identity.Should().Be(new DependencyNodeIdentity("A", new NuGetVersion(1, 0, 0), DependencyType.Package));
             a.Item1.ParentNodes.Should().HaveCount(1);
             a.Item1.ChildNodes.Should().HaveCount(1);
             ValidateBidirectionalEdges(graph.Node, a, VersionRange.Parse("1.0.0"));
 
             // Ensure TestProject => B
-            (Node<PackageIdentity, VersionRange>, VersionRange) b = graph.Node.ChildNodes[1];
-            b.Item1.Identity.Should().Be(new PackageIdentity("b", new NuGetVersion(1, 0, 0)));
+            (Node<DependencyNodeIdentity, VersionRange>, VersionRange) b = graph.Node.ChildNodes[1];
+            b.Item1.Identity.Should().Be(new DependencyNodeIdentity("b", new NuGetVersion(1, 0, 0), DependencyType.Package));
             b.Item1.ParentNodes.Should().HaveCount(1);
             b.Item1.ChildNodes.Should().HaveCount(1);
             ValidateBidirectionalEdges(graph.Node, b, VersionRange.Parse("1.0.0"));
 
             // Ensure A => C
             var c1 = a.Item1.ChildNodes[0];
-            c1.Item1.Identity.Should().Be(new PackageIdentity("c", new NuGetVersion(1, 1, 0)));
+            c1.Item1.Identity.Should().Be(new DependencyNodeIdentity("c", new NuGetVersion(1, 1, 0), DependencyType.Package));
             c1.Item1.ParentNodes.Should().HaveCount(2);
             c1.Item1.ChildNodes.Should().HaveCount(0);
             ValidateBidirectionalEdges(a.Item1, c1, VersionRange.Parse("1.0.0"));
 
             // Ensure B => C
             var c2 = b.Item1.ChildNodes[0];
-            c2.Item1.Identity.Should().Be(new PackageIdentity("c", new NuGetVersion(1, 1, 0)));
+            c2.Item1.Identity.Should().Be(new DependencyNodeIdentity("c", new NuGetVersion(1, 1, 0), DependencyType.Package));
             c2.Item1.ParentNodes.Should().HaveCount(2);
             c2.Item1.ChildNodes.Should().HaveCount(0);
             ValidateBidirectionalEdges(b.Item1, c2, VersionRange.Parse("1.1.0"));
@@ -286,22 +285,22 @@ namespace Common.Test
             graph.Node.ChildNodes.Should().HaveCount(2);
 
             // Ensure TestProject => A
-            (Node<PackageIdentity, VersionRange>, VersionRange) a = graph.Node.ChildNodes[0];
-            a.Item1.Identity.Should().Be(new PackageIdentity("A", new NuGetVersion(1, 0, 0)));
+            (Node<DependencyNodeIdentity, VersionRange>, VersionRange) a = graph.Node.ChildNodes[0];
+            a.Item1.Identity.Should().Be(new DependencyNodeIdentity("A", new NuGetVersion(1, 0, 0), DependencyType.Package));
             a.Item1.ParentNodes.Should().HaveCount(1);
             a.Item1.ChildNodes.Should().HaveCount(1);
             ValidateBidirectionalEdges(graph.Node, a, VersionRange.Parse("1.0.0"));
 
             // Ensure TestProject => B
-            (Node<PackageIdentity, VersionRange>, VersionRange) b1 = graph.Node.ChildNodes[1];
-            b1.Item1.Identity.Should().Be(new PackageIdentity("B", new NuGetVersion(2, 0, 0)));
+            (Node<DependencyNodeIdentity, VersionRange>, VersionRange) b1 = graph.Node.ChildNodes[1];
+            b1.Item1.Identity.Should().Be(new DependencyNodeIdentity("B", new NuGetVersion(2, 0, 0), DependencyType.Package));
             b1.Item1.ParentNodes.Should().HaveCount(2);
             b1.Item1.ChildNodes.Should().HaveCount(0);
             ValidateBidirectionalEdges(graph.Node, b1, VersionRange.Parse("2.0.0"));
 
             // Ensure A => B
             var b2 = a.Item1.ChildNodes[0];
-            b2.Item1.Identity.Should().Be(new PackageIdentity("B", new NuGetVersion(2, 0, 0)));
+            b2.Item1.Identity.Should().Be(new DependencyNodeIdentity("B", new NuGetVersion(2, 0, 0), DependencyType.Package));
             b2.Item1.ParentNodes.Should().HaveCount(2);
             b2.Item1.ChildNodes.Should().HaveCount(0);
             ValidateBidirectionalEdges(a.Item1, b2, VersionRange.Parse("1.0.0"));
@@ -324,8 +323,8 @@ namespace Common.Test
             graph.Node.Identity.Id.Should().Be("TestProject");
             graph.Node.ParentNodes.Should().HaveCount(0);
             graph.Node.ChildNodes.Should().HaveCount(1);
-            (Node<PackageIdentity, VersionRange>, VersionRange) newtonsoftJsonNode = graph.Node.ChildNodes[0];
-            newtonsoftJsonNode.Item1.Identity.Should().Be(new PackageIdentity("A", new NuGetVersion(1, 0, 0)));
+            (Node<DependencyNodeIdentity, VersionRange>, VersionRange) newtonsoftJsonNode = graph.Node.ChildNodes[0];
+            newtonsoftJsonNode.Item1.Identity.Should().Be(new DependencyNodeIdentity("A", new NuGetVersion(1, 0, 0), DependencyType.Package));
             newtonsoftJsonNode.Item1.ParentNodes.Should().HaveCount(1);
             newtonsoftJsonNode.Item1.ChildNodes.Should().HaveCount(0);
             ValidateBidirectionalEdges(graph.Node, newtonsoftJsonNode, VersionRange.Parse("1.0.0"));
@@ -343,8 +342,8 @@ namespace Common.Test
             net472Graph.Node.Identity.Id.Should().Be("TestProject");
             net472Graph.Node.ParentNodes.Should().HaveCount(0);
             net472Graph.Node.ChildNodes.Should().HaveCount(1);
-            (Node<PackageIdentity, VersionRange>, VersionRange) a = net472Graph.Node.ChildNodes[0];
-            a.Item1.Identity.Should().Be(new PackageIdentity("A", new NuGetVersion(1, 0, 0)));
+            (Node<DependencyNodeIdentity, VersionRange>, VersionRange) a = net472Graph.Node.ChildNodes[0];
+            a.Item1.Identity.Should().Be(new DependencyNodeIdentity("A", new NuGetVersion(1, 0, 0), DependencyType.Package));
             a.Item1.ParentNodes.Should().HaveCount(1);
             a.Item1.ChildNodes.Should().HaveCount(0);
             ValidateBidirectionalEdges(net472Graph.Node, a, VersionRange.Parse("1.0.0"));
@@ -353,15 +352,15 @@ namespace Common.Test
             net48Graph.Node.Identity.Id.Should().Be("TestProject");
             net48Graph.Node.ParentNodes.Should().HaveCount(0);
             net48Graph.Node.ChildNodes.Should().HaveCount(1);
-            (Node<PackageIdentity, VersionRange>, VersionRange) b = net48Graph.Node.ChildNodes[0];
-            b.Item1.Identity.Should().Be(new PackageIdentity("b", new NuGetVersion(2, 0, 0)));
+            (Node<DependencyNodeIdentity, VersionRange>, VersionRange) b = net48Graph.Node.ChildNodes[0];
+            b.Item1.Identity.Should().Be(new DependencyNodeIdentity("b", new NuGetVersion(2, 0, 0), DependencyType.Package));
             b.Item1.ParentNodes.Should().HaveCount(1);
             b.Item1.ChildNodes.Should().HaveCount(0);
             ValidateBidirectionalEdges(net48Graph.Node, b, VersionRange.Parse("2.0.0"));
         }
 
 
-        private static void ValidateBidirectionalEdges(Node<PackageIdentity, VersionRange> parentNode, (Node<PackageIdentity, VersionRange>, VersionRange) childNode, VersionRange expectedVersionRange)
+        private static void ValidateBidirectionalEdges(Node<DependencyNodeIdentity, VersionRange> parentNode, (Node<DependencyNodeIdentity, VersionRange>, VersionRange) childNode, VersionRange expectedVersionRange)
         {
             childNode.Item1.ParentNodes.Should().Contain(e => e.Item1.Equals(parentNode)); // Ensure child's parent node contains parent
             parentNode.ChildNodes.Should().Contain(e => e.Item1.Equals(childNode.Item1)); // Ensure parent's child node contains parent (redudant check)
