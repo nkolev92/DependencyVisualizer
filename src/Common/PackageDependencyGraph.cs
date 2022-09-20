@@ -58,7 +58,7 @@ namespace Common
             TargetFrameworkInformation targetFrameworkInformation = packageSpec.GetTargetFramework(framework.TargetFramework);
             foreach (var packageDependency in targetFrameworkInformation.Dependencies)
             {
-                var node = packageIdToNode[packageDependency.Name];
+                PackageDependencyNode node = packageIdToNode[packageDependency.Name];
                 graph.Node.ChildNodes.Add((node, packageDependency.LibraryRange.VersionRange));
                 node.ParentNodes.Add((graph.Node, packageDependency.LibraryRange.VersionRange));
             }
