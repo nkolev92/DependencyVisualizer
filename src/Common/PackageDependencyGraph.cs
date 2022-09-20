@@ -17,6 +17,37 @@ namespace Common
         /// </summary>
         /// <param name="assetsFile">The assets file must not be null.</param>
         /// <returns></returns>
+        /// <exception cref="InvalidOperationException">If the assets file is not valid</exception>
+        /// <exception cref="ArgumentNullException">If the assets file is null</exception>
+        public static Dictionary<string, PackageDependencyGraph> GenerateAllDependencyGraphsFromAssetsFile(LockFile assetsFile)
+        {
+            ArgumentNullException.ThrowIfNull(assetsFile);
+            PackageIdentity projectIdentity = new(assetsFile.PackageSpec.Name, assetsFile.PackageSpec.Version);
+
+            List<LockFileTarget> frameworks = assetsFile.Targets.Where(e => string.IsNullOrEmpty(e.RuntimeIdentifier)).ToList();
+
+            if (frameworks.Count == 0)
+            {
+                throw new InvalidProgramException("There are no valid frameworks to process in the assets file");
+            }
+
+            Dictionary<string, PackageDependencyGraph> aliasToDependencyGraph = new();
+
+            foreach (var framework in frameworks)
+            {
+                var dependenyGraph = GenerateGraphForAGivenFramework(projectIdentity, framework, assetsFile.PackageSpec);
+                var alias = assetsFile.PackageSpec.GetTargetFramework(framework.TargetFramework);
+                aliasToDependencyGraph.Add(alias.TargetAlias, dependenyGraph);
+            }
+
+            return aliasToDependencyGraph;
+        }
+
+        /// <summary>
+        /// Generate a graph given an assets file
+        /// </summary>
+        /// <param name="assetsFile">The assets file must not be null.</param>
+        /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
         public static PackageDependencyGraph FromAssetsFile(LockFile assetsFile)
         {
@@ -32,7 +63,6 @@ namespace Common
 
             return GenerateGraphForAGivenFramework(projectIdentity, frameworks[0], assetsFile.PackageSpec);
             // TODO https://github.com/nkolev92/DependencyVisualizer/issues/1 - What should we do in the multi framework case?
-
         }
 
         private static PackageDependencyGraph GenerateGraphForAGivenFramework(PackageIdentity projectIdentity, LockFileTarget framework, PackageSpec packageSpec)

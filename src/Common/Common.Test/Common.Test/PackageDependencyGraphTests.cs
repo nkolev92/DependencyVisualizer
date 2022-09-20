@@ -331,6 +331,35 @@ namespace Common.Test
             ValidateBidirectionalEdges(graph.Node, newtonsoftJsonNode, VersionRange.Parse("1.0.0"));
         }
 
+        [Fact]
+        public void GenerateAllDependencyGraphsFromAssetsFile_WithMultipleFrameworksAndDifferentPackageReferences_ParsesOnlyTheFirstGraphCorrectly()
+        {
+            var assetsFileText = TestHelpers.GetResource("Common.Test.compiler.resources.multitargeted.assets.json", GetType());
+
+            var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
+            Dictionary<string, PackageDependencyGraph> graphs = PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFile(assetsFile);
+
+            var net472Graph = graphs["net472"];
+            net472Graph.Node.Identity.Id.Should().Be("TestProject");
+            net472Graph.Node.ParentNodes.Should().HaveCount(0);
+            net472Graph.Node.ChildNodes.Should().HaveCount(1);
+            (Node<PackageIdentity, VersionRange>, VersionRange) a = net472Graph.Node.ChildNodes[0];
+            a.Item1.Identity.Should().Be(new PackageIdentity("A", new NuGetVersion(1, 0, 0)));
+            a.Item1.ParentNodes.Should().HaveCount(1);
+            a.Item1.ChildNodes.Should().HaveCount(0);
+            ValidateBidirectionalEdges(net472Graph.Node, a, VersionRange.Parse("1.0.0"));
+
+            var net48Graph = graphs["net48"];
+            net48Graph.Node.Identity.Id.Should().Be("TestProject");
+            net48Graph.Node.ParentNodes.Should().HaveCount(0);
+            net48Graph.Node.ChildNodes.Should().HaveCount(1);
+            (Node<PackageIdentity, VersionRange>, VersionRange) b = net48Graph.Node.ChildNodes[0];
+            b.Item1.Identity.Should().Be(new PackageIdentity("b", new NuGetVersion(2, 0, 0)));
+            b.Item1.ParentNodes.Should().HaveCount(1);
+            b.Item1.ChildNodes.Should().HaveCount(0);
+            ValidateBidirectionalEdges(net48Graph.Node, b, VersionRange.Parse("2.0.0"));
+        }
+
 
         private static void ValidateBidirectionalEdges(Node<PackageIdentity, VersionRange> parentNode, (Node<PackageIdentity, VersionRange>, VersionRange) childNode, VersionRange expectedVersionRange)
         {
