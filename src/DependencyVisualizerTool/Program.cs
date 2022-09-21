@@ -1,5 +1,8 @@
 ﻿// See https://aka.ms/new-console-template for more information
+using Microsoft.Build.Locator;
 using System.CommandLine;
+
+MSBuildLocator.RegisterDefaults();
 
 var fileArgument = new Argument<FileInfo?>(
     name: "assetsFile",
