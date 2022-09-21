@@ -1,5 +1,4 @@
-﻿using NuGet.Packaging.Core;
-using NuGet.Versioning;
+﻿using NuGet.Versioning;
 using System.Diagnostics;
 
 namespace Common

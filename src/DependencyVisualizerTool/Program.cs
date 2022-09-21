@@ -1,5 +1,11 @@
 ﻿// See https://aka.ms/new-console-template for more information
+using DependencyVisualizerTool;
+using Microsoft.Build.Execution;
+using Microsoft.Build.Framework;
+using Microsoft.Build.Locator;
 using System.CommandLine;
+
+MSBuildLocator.RegisterDefaults();
 
 var fileArgument = new Argument<FileInfo?>(
     name: "assetsFile",
@@ -46,11 +52,6 @@ return rootCommand.InvokeAsync(args).Result;
 static async Task ReadFile(
             FileInfo file, int delay, bool lightMode)
 {
-    Console.BackgroundColor = lightMode ? ConsoleColor.White : ConsoleColor.Black;
-    List<string> lines = File.ReadLines(file.FullName).ToList();
-    foreach (string line in lines)
-    {
-        Console.WriteLine(line);
-        await Task.Delay(delay * line.Length);
-    };
+    var path = MSBuildUtility.GetMSBuildProjectExtensionsPath(file.FullName);
+    Console.WriteLine(path);
 }
