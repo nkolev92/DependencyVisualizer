@@ -1,6 +1,8 @@
-﻿using Microsoft.Build.Construction;
+﻿using Logging;
+using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Exceptions;
+using Microsoft.Extensions.Logging;
 using System.Globalization;
 
 namespace DependencyVisualizerTool
@@ -24,6 +26,7 @@ namespace DependencyVisualizerTool
             }
             catch (InvalidProjectFileException e)
             {
+                AppLogger.Logger.LogError(string.Format(CultureInfo.CurrentCulture, "Unable to open the project {0}", projectCSProjPath));
                 throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "Unable to open the project {0}", projectCSProjPath), e);
             }
         }
