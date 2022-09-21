@@ -1,9 +1,7 @@
+using DependencyVisualizerTool;
 using FluentAssertions;
 using NuGet.ProjectModel;
 using NuGet.Versioning;
-using DependencyVisualizerTool;
-using NuGet.Frameworks;
-using System.Xml.Linq;
 using System.Text.RegularExpressions;
 
 namespace Common.Test

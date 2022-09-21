@@ -13,14 +13,11 @@
 
 	<ItemGroup>
 		<None Remove="compiler\resources\diamonddependency.assets.json" />
-		<None Remove="compiler\resources\diamonddependency.dgml" />
 		<None Remove="compiler\resources\diamonddependencywithtoplevel.assets.json" />
-		<None Remove="compiler\resources\diamonddependencywithtoplevel.dgml" />
 		<None Remove="compiler\resources\missingpackageversion.assets.json" />
 		<None Remove="compiler\resources\multipleversions.assets.json" />
 		<None Remove="compiler\resources\multitargeted.assets.json" />
 		<None Remove="compiler\resources\nuget.common.assets.json" />
-		<None Remove="compiler\resources\nuget.common.dgml" />
 		<None Remove="compiler\resources\singlepackagereference.assets.json" />
 		<None Remove="compiler\resources\singleprojectreference.assets.json" />
 		<None Remove="compiler\resources\transitivepackagereference.assets.json" />
