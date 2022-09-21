@@ -1,6 +1,10 @@
 using FluentAssertions;
 using NuGet.ProjectModel;
 using NuGet.Versioning;
+using DependencyVisualizerTool;
+using NuGet.Frameworks;
+using System.Xml.Linq;
+using System.Text.RegularExpressions;
 
 namespace Common.Test
 {
@@ -367,6 +371,163 @@ namespace Common.Test
             childNode.Item2.Should().Be(expectedVersionRange); // Ensure the child version range
             var parentToChildEdge = parentNode.ChildNodes.First(e => e.Item1.Equals(childNode.Item1));
             parentToChildEdge.Item2.Should().Be(expectedVersionRange); // Ensure the parent to child version range
+        }
+
+        
+        [Fact]
+        public void TransGraphToDGMLXDocument_diamonddependency_CreateDGMLCorrectly()
+        {
+            var assetsFileText = TestHelpers.GetResource("Common.Test.compiler.resources.diamonddependency.assets.json", GetType());
+
+            var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
+            var graph = PackageDependencyGraph.FromAssetsFile(assetsFile);
+
+            string actualDGML = RemoveWhitespace(DGMLDependencyVisualizerTool.TransGraphToDGMLXDocument(graph).ToString());
+
+            string expectedDGML = RemoveWhitespace(TestHelpers.GetResource("Common.Test.compiler.resources.diamonddependency.dgml", GetType()));
+
+            actualDGML.Should().Be(expectedDGML, because: actualDGML);
+        }
+
+        [Fact]
+        public void TransGraphToDGMLXDocument_diamonddependencywithouttoplevel_CreateDGMLCorrectly()
+        {
+            var assetsFileText = TestHelpers.GetResource("Common.Test.compiler.resources.diamonddependencywithtoplevel.assets.json", GetType());
+
+            var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
+            var graph = PackageDependencyGraph.FromAssetsFile(assetsFile);
+
+            string actualDGML = RemoveWhitespace(DGMLDependencyVisualizerTool.TransGraphToDGMLXDocument(graph).ToString());
+
+            string expectedDGML = RemoveWhitespace(TestHelpers.GetResource("Common.Test.compiler.resources.diamonddependencywithtoplevel.dgml", GetType()));
+
+            actualDGML.Should().Be(expectedDGML, because: actualDGML);
+        }
+
+        [Fact]
+        public void TransGraphToDGMLXDocument_missingpackageversion_CreateDGMLCorrectly()
+        {
+            var assetsFileText = TestHelpers.GetResource("Common.Test.compiler.resources.missingpackageversion.assets.json", GetType());
+
+            var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
+            var graph = PackageDependencyGraph.FromAssetsFile(assetsFile);
+
+            string actualDGML = RemoveWhitespace(DGMLDependencyVisualizerTool.TransGraphToDGMLXDocument(graph).ToString());
+
+            string expectedDGML = RemoveWhitespace(TestHelpers.GetResource("Common.Test.compiler.resources.missingpackageversion.dgml", GetType()));
+
+            actualDGML.Should().Be(expectedDGML, because: actualDGML);
+        }
+
+        [Fact]
+        public void TransGraphToDGMLXDocument_multipleversions_CreateDGMLCorrectly()
+        {
+            var assetsFileText = TestHelpers.GetResource("Common.Test.compiler.resources.multipleversions.assets.json", GetType());
+
+            var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
+            var graph = PackageDependencyGraph.FromAssetsFile(assetsFile);
+
+            string actualDGML = RemoveWhitespace(DGMLDependencyVisualizerTool.TransGraphToDGMLXDocument(graph).ToString());
+
+            string expectedDGML = RemoveWhitespace(TestHelpers.GetResource("Common.Test.compiler.resources.multipleversions.dgml", GetType()));
+
+            actualDGML.Should().Be(expectedDGML, because: actualDGML);
+        }
+
+        [Fact]
+        public void TransGraphToDGMLXDocument_multitargeted_CreateDGMLCorrectly()
+        {
+            var assetsFileText = TestHelpers.GetResource("Common.Test.compiler.resources.multitargeted.assets.json", GetType());
+
+            var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
+            var graph = PackageDependencyGraph.FromAssetsFile(assetsFile);
+
+            string actualDGML = RemoveWhitespace(DGMLDependencyVisualizerTool.TransGraphToDGMLXDocument(graph).ToString());
+
+            string expectedDGML = RemoveWhitespace(TestHelpers.GetResource($"Common.Test.compiler.resources.multitargeted.dgml", GetType()));
+
+            actualDGML.Should().Be(expectedDGML, because: actualDGML);
+        }
+
+        [Fact]
+        public void TransGraphToDGMLXDocument_nugetcommon_CreateDGMLCorrectly()
+        {
+            var assetsFileText = TestHelpers.GetResource("Common.Test.compiler.resources.nuget.common.assets.json", GetType());
+
+            var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
+            var graph = PackageDependencyGraph.FromAssetsFile(assetsFile);
+
+            string actualDGML = RemoveWhitespace(DGMLDependencyVisualizerTool.TransGraphToDGMLXDocument(graph).ToString());
+
+            string expectedDGML = RemoveWhitespace(TestHelpers.GetResource($"Common.Test.compiler.resources.nuget.common.dgml", GetType()));
+
+            actualDGML.Should().Be(expectedDGML, because: actualDGML);
+        }
+
+
+        [Fact]
+        public void TransGraphToDGMLXDocument_singlepackagereference_CreateDGMLCorrectly()
+        {
+            var assetsFileText = TestHelpers.GetResource("Common.Test.compiler.resources.singlepackagereference.assets.json", GetType());
+
+            var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
+            var graph = PackageDependencyGraph.FromAssetsFile(assetsFile);
+
+            string actualDGML = RemoveWhitespace(DGMLDependencyVisualizerTool.TransGraphToDGMLXDocument(graph).ToString());
+
+            string expectedDGML = RemoveWhitespace(TestHelpers.GetResource($"Common.Test.compiler.resources.singlepackagereference.dgml", GetType()));
+
+            actualDGML.Should().Be(expectedDGML, because: actualDGML);
+        }
+
+        [Fact]
+        public void TransGraphToDGMLXDocument_singleprojectreference_CreateDGMLCorrectly()
+        {
+            var assetsFileText = TestHelpers.GetResource("Common.Test.compiler.resources.singleprojectreference.assets.json", GetType());
+
+            var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
+            var graph = PackageDependencyGraph.FromAssetsFile(assetsFile);
+
+            string actualDGML = RemoveWhitespace(DGMLDependencyVisualizerTool.TransGraphToDGMLXDocument(graph).ToString());
+
+            string expectedDGML = RemoveWhitespace(TestHelpers.GetResource($"Common.Test.compiler.resources.singleprojectreference.dgml", GetType()));
+
+            actualDGML.Should().Be(expectedDGML, because: actualDGML);
+        }
+
+        [Fact]
+        public void TransGraphToDGMLXDocument_transitivepackagereference_CreateDGMLCorrectly()
+        {
+            var assetsFileText = TestHelpers.GetResource("Common.Test.compiler.resources.transitivepackagereference.assets.json", GetType());
+
+            var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
+            var graph = PackageDependencyGraph.FromAssetsFile(assetsFile);
+
+            string actualDGML = RemoveWhitespace(DGMLDependencyVisualizerTool.TransGraphToDGMLXDocument(graph).ToString());
+
+            string expectedDGML = RemoveWhitespace(TestHelpers.GetResource($"Common.Test.compiler.resources.transitivepackagereference.dgml", GetType()));
+
+            actualDGML.Should().Be(expectedDGML, because: actualDGML);
+        }
+
+        [Fact]
+        public void TransGraphToDGMLXDocument_transitiveprojectreference_CreateDGMLCorrectly()
+        {
+            var assetsFileText = TestHelpers.GetResource("Common.Test.compiler.resources.transitiveprojectreference.assets.json", GetType());
+
+            var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
+            var graph = PackageDependencyGraph.FromAssetsFile(assetsFile);
+
+            string actualDGML = RemoveWhitespace(DGMLDependencyVisualizerTool.TransGraphToDGMLXDocument(graph).ToString());
+
+            string expectedDGML = RemoveWhitespace(TestHelpers.GetResource($"Common.Test.compiler.resources.transitiveprojectreference.dgml", GetType()));
+
+            actualDGML.Should().Be(expectedDGML, because: actualDGML);
+        }
+
+        private static string RemoveWhitespace(string s)
+        {
+            return Regex.Replace(s, @"\s+", string.Empty);
         }
     }
 }

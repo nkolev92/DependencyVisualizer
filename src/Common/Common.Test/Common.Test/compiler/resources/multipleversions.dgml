@@ -1,0 +1,20 @@
+﻿<DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
+  <Nodes>
+    <Node Id="Project.1.0.0" Label="Project.1.0.0" Category="Project" />
+    <Node Id="Newtonsoft.Json.Bson.1.0.2" Label="Newtonsoft.Json.Bson.1.0.2" Category="Package" />
+    <Node Id="NuGet.Common.6.3.0" Label="NuGet.Common.6.3.0" Category="Package" />
+    <Node Id="Newtonsoft.Json.12.0.1" Label="Newtonsoft.Json.12.0.1" Category="Package" />
+    <Node Id="NuGet.Frameworks.6.3.0" Label="NuGet.Frameworks.6.3.0" Category="Package" />
+  </Nodes>
+  <Links>
+    <Link Source="Project.1.0.0" Target="Newtonsoft.Json.Bson.1.0.2" Label="[1.0.2, )" />
+    <Link Source="Project.1.0.0" Target="NuGet.Common.6.3.0" Label="[6.3.0, )" />
+    <Link Source="Newtonsoft.Json.Bson.1.0.2" Target="Newtonsoft.Json.12.0.1" Label="[12.0.1, )" />
+    <Link Source="NuGet.Common.6.3.0" Target="NuGet.Frameworks.6.3.0" Label="[6.3.0, )" />
+  </Links>
+  <Categories>
+    <Category Id="Project" Background="Lightgray" StrokeThickness="2">
+      <Category Id="Package" Background="None" StrokeThickness="1" />
+    </Category>
+  </Categories>
+</DirectedGraph>

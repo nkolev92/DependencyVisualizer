@@ -1,0 +1,16 @@
+﻿<DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
+  <Nodes>
+    <Node Id="ParentProject.1.0.0" Label="ParentProject.1.0.0" Category="Project" />
+    <Node Id="LeafProject.1.0.0" Label="LeafProject.1.0.0" Category="Project" />
+    <Node Id="NuGet.Versioning.6.3.0" Label="NuGet.Versioning.6.3.0" Category="Package" />
+  </Nodes>
+  <Links>
+    <Link Source="ParentProject.1.0.0" Target="LeafProject.1.0.0" Label="[1.0.0, )" />
+    <Link Source="LeafProject.1.0.0" Target="NuGet.Versioning.6.3.0" Label="[6.3.0, )" />
+  </Links>
+  <Categories>
+    <Category Id="Project" Background="Lightgray" StrokeThickness="2">
+      <Category Id="Package" Background="None" StrokeThickness="1" />
+    </Category>
+  </Categories>
+</DirectedGraph>
