@@ -1,5 +1,8 @@
 name: .NET
 
+env:
+  Configuration: Release
+
 on:
   push:
     branches: [ "main" ]
