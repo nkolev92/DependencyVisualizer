@@ -6,9 +6,9 @@ using System.Diagnostics;
 namespace Common
 {
     [DebuggerDisplay("{Node}")]
-    public class PackageDependencyGraph : Graph<PackageIdentity, VersionRange>
+    public class PackageDependencyGraph : Graph<DependencyNodeIdentity, VersionRange>
     {
-        public PackageDependencyGraph(Node<PackageIdentity, VersionRange> node) : base(node)
+        public PackageDependencyGraph(Node<DependencyNodeIdentity, VersionRange> node) : base(node)
         {
         }
 
@@ -22,7 +22,7 @@ namespace Common
         public static Dictionary<string, PackageDependencyGraph> GenerateAllDependencyGraphsFromAssetsFile(LockFile assetsFile)
         {
             ArgumentNullException.ThrowIfNull(assetsFile);
-            PackageIdentity projectIdentity = new(assetsFile.PackageSpec.Name, assetsFile.PackageSpec.Version);
+            DependencyNodeIdentity projectIdentity = new(assetsFile.PackageSpec.Name, assetsFile.PackageSpec.Version, DependencyType.Project);
 
             List<LockFileTarget> frameworks = assetsFile.Targets.Where(e => string.IsNullOrEmpty(e.RuntimeIdentifier)).ToList();
 
@@ -52,7 +52,7 @@ namespace Common
         public static PackageDependencyGraph FromAssetsFile(LockFile assetsFile)
         {
             ArgumentNullException.ThrowIfNull(assetsFile);
-            PackageIdentity projectIdentity = new(assetsFile.PackageSpec.Name, assetsFile.PackageSpec.Version);
+            DependencyNodeIdentity projectIdentity = new(assetsFile.PackageSpec.Name, assetsFile.PackageSpec.Version, DependencyType.Project);
 
             List<LockFileTarget> frameworks = assetsFile.Targets.Where(e => string.IsNullOrEmpty(e.RuntimeIdentifier)).ToList();
 
@@ -65,7 +65,7 @@ namespace Common
             // TODO https://github.com/nkolev92/DependencyVisualizer/issues/1 - What should we do in the multi framework case?
         }
 
-        private static PackageDependencyGraph GenerateGraphForAGivenFramework(PackageIdentity projectIdentity, LockFileTarget framework, PackageSpec packageSpec)
+        private static PackageDependencyGraph GenerateGraphForAGivenFramework(DependencyNodeIdentity projectIdentity, LockFileTarget framework, PackageSpec packageSpec)
         {
             PackageDependencyGraph graph = new(new PackageDependencyNode(projectIdentity));
 
@@ -115,7 +115,10 @@ namespace Common
 
                 foreach (LockFileTargetLibrary package in framework.Libraries)
                 {
-                    PackageDependencyNode currentPackageNode = new(new PackageIdentity(package.Name, package.Version));
+                    DependencyType dependencyType = Enum.TryParse(typeof(DependencyType), package.Type, ignoreCase: true, out object? result) ?
+                        result != null ? (DependencyType)result : DependencyType.Package
+                        : DependencyType.Package;
+                    PackageDependencyNode currentPackageNode = new(new DependencyNodeIdentity(package.Name, package.Version, dependencyType));
                     seenPackages.Add(package.Name, currentPackageNode);
                 }
 
