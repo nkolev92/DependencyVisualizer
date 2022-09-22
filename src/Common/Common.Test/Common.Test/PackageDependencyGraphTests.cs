@@ -1,6 +1,7 @@
 using FluentAssertions;
 using NuGet.ProjectModel;
 using NuGet.Versioning;
+using SharedUtility;
 
 namespace Common.Test
 {
@@ -73,7 +74,7 @@ namespace Common.Test
             ValidateBidirectionalEdges(graph.Node, newtonsoftJsonNode, VersionRange.Parse("13.0.1"));
         }
 
-        // SingleProjectSingleFramework -> Newtonsoft.Json 13.0.1
+        // Parent -> Leaf 3.0.0
         [Fact]
         public void FromAssetsFile_WithSingleFramework_WithSingleProjectReference_ParsesGraphCorrectly()
         {
@@ -330,6 +331,8 @@ namespace Common.Test
             ValidateBidirectionalEdges(graph.Node, newtonsoftJsonNode, VersionRange.Parse("1.0.0"));
         }
 
+        // (net472) TestProject -> A 1.0.0
+        // (net48) TestProject -> B 2.0.0
         [Fact]
         public void GenerateAllDependencyGraphsFromAssetsFile_WithMultipleFrameworksAndDifferentPackageReferences_ParsesOnlyTheFirstGraphCorrectly()
         {
@@ -359,6 +362,38 @@ namespace Common.Test
             ValidateBidirectionalEdges(net48Graph.Node, b, VersionRange.Parse("2.0.0"));
         }
 
+        // Parent -> Nephew (project file name is Child.csproj) 13.0.1 => NuGet.Frameworks 6.3.0
+        [Fact]
+        public void FromAssetsFile_WithProjectReferenceWithAPackageId_ParsesGraphCorrectly()
+        {
+            using var tempFile = new TempFile();
+            var assetsFileText = TestHelpers.GetResource("Common.Test.compiler.resources.projectwithpackageid.assets.json", GetType());
+            var dgspecFileText = TestHelpers.GetResource("Common.Test.compiler.resources.projectwithpackageid.dgspec.json", GetType());
+            File.WriteAllText(tempFile.FilePath, dgspecFileText);
+            var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
+            var dgSpec = DependencyGraphSpec.Load(tempFile.FilePath);
+
+            var graphs = PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFile(assetsFile, dgSpec);
+            graphs.Should().HaveCount(1);
+            var graph = graphs.Single().Value;
+
+            graph.Node.Identity.Id.Should().Be("Parent");
+            graph.Node.ParentNodes.Should().HaveCount(0);
+            graph.Node.ChildNodes.Should().HaveCount(1);
+
+            // Ensure Parent => Child (but really named Nephew)
+            (Node<DependencyNodeIdentity, VersionRange>, VersionRange) nephewNode = graph.Node.ChildNodes[0];
+            nephewNode.Item1.Identity.Should().Be(new DependencyNodeIdentity("Nephew", new NuGetVersion(1, 0, 0), DependencyType.Project));
+            nephewNode.Item1.ParentNodes.Should().HaveCount(1);
+            nephewNode.Item1.ChildNodes.Should().HaveCount(1);
+            ValidateBidirectionalEdges(graph.Node, nephewNode, VersionRange.Parse("1.0.0"));
+
+            (Node<DependencyNodeIdentity, VersionRange>, VersionRange) nugetVersioning = nephewNode.Item1.ChildNodes[0];
+            nugetVersioning.Item1.Identity.Should().Be(new DependencyNodeIdentity("NuGet.Frameworks", new NuGetVersion(6, 3, 0), DependencyType.Package));
+            nugetVersioning.Item1.ParentNodes.Should().HaveCount(1);
+            nugetVersioning.Item1.ChildNodes.Should().HaveCount(0);
+            ValidateBidirectionalEdges(nephewNode.Item1, nugetVersioning, VersionRange.Parse("6.3.0"));
+        }
 
         private static void ValidateBidirectionalEdges(Node<DependencyNodeIdentity, VersionRange> parentNode, (Node<DependencyNodeIdentity, VersionRange>, VersionRange) childNode, VersionRange expectedVersionRange)
         {

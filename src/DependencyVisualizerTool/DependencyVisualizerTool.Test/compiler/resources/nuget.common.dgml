@@ -1,0 +1,33 @@
+﻿<DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
+  <Nodes>
+    <Node Id="NuGet.Common.6.4.0-preview.3.32767" Label="NuGet.Common.6.4.0-preview.3.32767" Category="Project" />
+    <Node Id="Microsoft.CodeAnalysis.BannedApiAnalyzers.3.3.2" Label="Microsoft.CodeAnalysis.BannedApiAnalyzers.3.3.2" Category="Package" />
+    <Node Id="Microsoft.CodeAnalysis.FxCopAnalyzers.2.9.8" Label="Microsoft.CodeAnalysis.FxCopAnalyzers.2.9.8" Category="Package" />
+    <Node Id="Microsoft.CodeAnalysis.PublicApiAnalyzers.3.0.0" Label="Microsoft.CodeAnalysis.PublicApiAnalyzers.3.0.0" Category="Package" />
+    <Node Id="Microsoft.SourceLink.GitHub.1.0.0" Label="Microsoft.SourceLink.GitHub.1.0.0" Category="Package" />
+    <Node Id="NuGet.Frameworks.6.4.0-preview.3.32767" Label="NuGet.Frameworks.6.4.0-preview.3.32767" Category="Project" />
+    <Node Id="Microsoft.CodeAnalysis.VersionCheckAnalyzer.2.9.8" Label="Microsoft.CodeAnalysis.VersionCheckAnalyzer.2.9.8" Category="Package" />
+    <Node Id="Microsoft.CodeQuality.Analyzers.2.9.8" Label="Microsoft.CodeQuality.Analyzers.2.9.8" Category="Package" />
+    <Node Id="Microsoft.NetCore.Analyzers.2.9.8" Label="Microsoft.NetCore.Analyzers.2.9.8" Category="Package" />
+    <Node Id="Microsoft.NetFramework.Analyzers.2.9.8" Label="Microsoft.NetFramework.Analyzers.2.9.8" Category="Package" />
+    <Node Id="Microsoft.Build.Tasks.Git.1.0.0" Label="Microsoft.Build.Tasks.Git.1.0.0" Category="Package" />
+    <Node Id="Microsoft.SourceLink.Common.1.0.0" Label="Microsoft.SourceLink.Common.1.0.0" Category="Package" />
+  </Nodes>
+  <Links>
+    <Link Source="NuGet.Common.6.4.0-preview.3.32767" Target="Microsoft.CodeAnalysis.BannedApiAnalyzers.3.3.2" Label="[3.3.2, )" />
+    <Link Source="NuGet.Common.6.4.0-preview.3.32767" Target="Microsoft.CodeAnalysis.FxCopAnalyzers.2.9.8" Label="[2.9.8, )" />
+    <Link Source="NuGet.Common.6.4.0-preview.3.32767" Target="Microsoft.CodeAnalysis.PublicApiAnalyzers.3.0.0" Label="[3.0.0, )" />
+    <Link Source="NuGet.Common.6.4.0-preview.3.32767" Target="Microsoft.SourceLink.GitHub.1.0.0" Label="[1.0.0, )" />
+    <Link Source="NuGet.Common.6.4.0-preview.3.32767" Target="NuGet.Frameworks.6.4.0-preview.3.32767" Label="[6.4.0-preview.3.32767, )" />
+    <Link Source="Microsoft.CodeAnalysis.FxCopAnalyzers.2.9.8" Target="Microsoft.CodeAnalysis.VersionCheckAnalyzer.2.9.8" Label="[2.9.8, 2.9.8]" />
+    <Link Source="Microsoft.CodeAnalysis.FxCopAnalyzers.2.9.8" Target="Microsoft.CodeQuality.Analyzers.2.9.8" Label="[2.9.8, 2.9.8]" />
+    <Link Source="Microsoft.CodeAnalysis.FxCopAnalyzers.2.9.8" Target="Microsoft.NetCore.Analyzers.2.9.8" Label="[2.9.8, 2.9.8]" />
+    <Link Source="Microsoft.CodeAnalysis.FxCopAnalyzers.2.9.8" Target="Microsoft.NetFramework.Analyzers.2.9.8" Label="[2.9.8, 2.9.8]" />
+    <Link Source="Microsoft.SourceLink.GitHub.1.0.0" Target="Microsoft.Build.Tasks.Git.1.0.0" Label="[1.0.0, )" />
+    <Link Source="Microsoft.SourceLink.GitHub.1.0.0" Target="Microsoft.SourceLink.Common.1.0.0" Label="[1.0.0, )" />
+  </Links>
+  <Categories>
+    <Category Id="Project" Background="Lightblue" StrokeThickness="2" />
+    <Category Id="Package" Background="None" StrokeThickness="1" />
+  </Categories>
+</DirectedGraph>

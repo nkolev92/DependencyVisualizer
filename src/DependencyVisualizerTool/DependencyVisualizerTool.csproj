@@ -24,4 +24,10 @@
 		<ProjectReference Include="..\Common\Common.csproj" />
 	</ItemGroup>
 
+    <!-- Ensure that the project files are not getting globbed.-->
+    <ItemGroup>
+        <Compile Remove="DependencyVisualizerTool.Test\**" />
+        <EmbeddedResource Remove="DependencyVisualizerTool.Test\**" />
+        <None Remove="DependencyVisualizerTool.Test\**" />
+    </ItemGroup>
 </Project>

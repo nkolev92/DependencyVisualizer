@@ -1,0 +1,13 @@
+﻿<DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
+  <Nodes>
+    <Node Id="SingleProjectSingleFramework.1.0.0" Label="SingleProjectSingleFramework.1.0.0" Category="Project" />
+    <Node Id="Newtonsoft.Json.13.0.1" Label="Newtonsoft.Json.13.0.1" Category="Package" />
+  </Nodes>
+  <Links>
+    <Link Source="SingleProjectSingleFramework.1.0.0" Target="Newtonsoft.Json.13.0.1" Label="[13.0.1, )" />
+  </Links>
+  <Categories>
+    <Category Id="Project" Background="Lightblue" StrokeThickness="2" />
+    <Category Id="Package" Background="None" StrokeThickness="1" />
+  </Categories>
+</DirectedGraph>

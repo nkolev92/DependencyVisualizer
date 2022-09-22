@@ -1,0 +1,13 @@
+﻿<DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
+  <Nodes>
+    <Node Id="Parent.1.5.0" Label="Parent.1.5.0" Category="Project" />
+    <Node Id="Leaf.3.0.0" Label="Leaf.3.0.0" Category="Project" />
+  </Nodes>
+  <Links>
+    <Link Source="Parent.1.5.0" Target="Leaf.3.0.0" Label="[3.0.0, )" />
+  </Links>
+  <Categories>
+    <Category Id="Project" Background="Lightblue" StrokeThickness="2" />
+    <Category Id="Package" Background="None" StrokeThickness="1" />
+  </Categories>
+</DirectedGraph>
