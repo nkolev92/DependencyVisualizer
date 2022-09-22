@@ -26,7 +26,7 @@ namespace DependencyVisualizerTool
             }
             catch (InvalidProjectFileException e)
             {
-                AppLogger.Logger.LogError(string.Format(CultureInfo.CurrentCulture, "Unable to open the project {0}", projectCSProjPath));
+                AppLogger.Logger.LogError(e.Message);
                 throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "Unable to open the project {0}", projectCSProjPath), e);
             }
         }

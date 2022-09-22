@@ -23,16 +23,12 @@ var fileArgument = new Argument<FileInfo?>(
 
 var rootCommand = new RootCommand("Dependency visualizer app for System.CommandLine");
 
-var readCommand = new Command("read", "Read and display the file.");
-
-readCommand.AddArgument(fileArgument);
-readCommand.SetHandler((file) =>
+rootCommand.AddArgument(fileArgument);
+rootCommand.SetHandler((file) =>
 {
     ReadFile(file!);
 },
     fileArgument);
-
-rootCommand.AddCommand(readCommand);
 
 return rootCommand.InvokeAsync(args).Result;
 
