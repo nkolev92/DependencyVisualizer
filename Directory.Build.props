@@ -1,5 +1,6 @@
 <Project>
 	<PropertyGroup>
 		<PackageVersion>1.0.0-alpha.1</PackageVersion>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 	</PropertyGroup>
 </Project>
