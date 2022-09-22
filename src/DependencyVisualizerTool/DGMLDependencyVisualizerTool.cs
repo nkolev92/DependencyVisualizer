@@ -87,12 +87,12 @@ namespace DependencyVisualizerTool
                 new XElement(XName.Get("Categories", DGMLxmlns),
                 new XElement(XName.Get("Category", DGMLxmlns),
                              new XAttribute("Id", "Project"),
-                             new XAttribute("Background", "Lightgray"),
-                             new XAttribute("StrokeThickness", "2"),
+                             new XAttribute("Background", "Lightblue"),
+                             new XAttribute("StrokeThickness", "2")),
                 new XElement(XName.Get("Category", DGMLxmlns),
                             new XAttribute("Id", "Package"),
                             new XAttribute("Background", "None"),
-                            new XAttribute("StrokeThickness", "1")))))
+                            new XAttribute("StrokeThickness", "1"))))
             );
             return document;
         }

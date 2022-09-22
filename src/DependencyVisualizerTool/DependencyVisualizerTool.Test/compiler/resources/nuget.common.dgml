@@ -27,8 +27,7 @@
     <Link Source="Microsoft.SourceLink.GitHub.1.0.0" Target="Microsoft.SourceLink.Common.1.0.0" Label="[1.0.0, )" />
   </Links>
   <Categories>
-    <Category Id="Project" Background="Lightgray" StrokeThickness="2">
-      <Category Id="Package" Background="None" StrokeThickness="1" />
-    </Category>
+    <Category Id="Project" Background="Lightblue" StrokeThickness="2" />
+    <Category Id="Package" Background="None" StrokeThickness="1" />
   </Categories>
 </DirectedGraph>

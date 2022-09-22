@@ -7,8 +7,7 @@
     <Link Source="Parent.1.5.0" Target="Leaf.3.0.0" Label="[3.0.0, )" />
   </Links>
   <Categories>
-    <Category Id="Project" Background="Lightgray" StrokeThickness="2">
-      <Category Id="Package" Background="None" StrokeThickness="1" />
-    </Category>
+    <Category Id="Project" Background="Lightblue" StrokeThickness="2" />
+    <Category Id="Package" Background="None" StrokeThickness="1" />
   </Categories>
 </DirectedGraph>

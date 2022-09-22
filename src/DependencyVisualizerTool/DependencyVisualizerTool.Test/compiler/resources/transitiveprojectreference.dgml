@@ -9,8 +9,7 @@
     <Link Source="LeafProject.1.0.0" Target="NuGet.Versioning.6.3.0" Label="[6.3.0, )" />
   </Links>
   <Categories>
-    <Category Id="Project" Background="Lightgray" StrokeThickness="2">
-      <Category Id="Package" Background="None" StrokeThickness="1" />
-    </Category>
+    <Category Id="Project" Background="Lightblue" StrokeThickness="2" />
+    <Category Id="Package" Background="None" StrokeThickness="1" />
   </Categories>
 </DirectedGraph>
