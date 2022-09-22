@@ -1,6 +1,7 @@
 using FluentAssertions;
 using NuGet.ProjectModel;
 using NuGet.Versioning;
+using SharedUtility;
 
 namespace Common.Test
 {

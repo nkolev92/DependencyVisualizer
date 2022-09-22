@@ -39,6 +39,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\..\SharedUtility\SharedUtility.csproj" />
 		<ProjectReference Include="..\..\Common.csproj" />
 	</ItemGroup>
 
