@@ -3,19 +3,21 @@ using Microsoft.Build.Locator;
 using System.CommandLine;
 using Logging;
 using Microsoft.Extensions.Logging;
+using static DependencyVisualizerTool.MSBuildUtility;
+using NuGet.ProjectModel;
 
 MSBuildLocator.RegisterDefaults();
 
 var fileArgument = new Argument<FileInfo?>(
-    name: "assetsFile",
-    description: "The file to read and display on the console.",
+    name: "projectFilePath",
+    description: "path to the project file",
     parse: result =>
     {
         string? filePath = result.Tokens.Single().Value;
         if (!File.Exists(filePath))
         {
-            result.ErrorMessage = "File does not exists";
-            AppLogger.Logger.LogError("File does not exists");
+            result.ErrorMessage = "Project file does not exists";
+            AppLogger.Logger.LogError("Project file does not exists");
             return null;
         }
         return new FileInfo(filePath);
@@ -35,9 +37,18 @@ return rootCommand.InvokeAsync(args).Result;
 static void ReadFile(
             FileInfo file)
 {
-    List<string> lines = File.ReadLines(file.FullName).ToList();
-    foreach (string line in lines)
+    try
     {
-        Console.WriteLine(line);
-    };
+        string assetsFilePath = Path.Combine(GetMSBuildProjectExtensionsPath(file.FullName), LockFileFormat.AssetsFileName);
+        List<string> lines = File.ReadLines(assetsFilePath).ToList();
+        foreach (string line in lines)
+        {
+            Console.WriteLine(line);
+        };
+    }
+    catch (Exception e)
+    {
+        AppLogger.Logger.LogError(e.Message);
+        throw;
+    }
 }
