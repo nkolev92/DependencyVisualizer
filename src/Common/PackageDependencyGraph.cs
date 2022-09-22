@@ -19,6 +19,45 @@ namespace Common
         /// <returns></returns>
         /// <exception cref="InvalidOperationException">If the assets file is not valid</exception>
         /// <exception cref="ArgumentNullException">If the assets file is null</exception>
+        public static Dictionary<string, PackageDependencyGraph> GenerateAllDependencyGraphsFromAssetsFile(LockFile assetsFile, DependencyGraphSpec dependencyGraphSpec)
+        {
+            ArgumentNullException.ThrowIfNull(assetsFile);
+            DependencyNodeIdentity projectIdentity = new(assetsFile.PackageSpec.Name, assetsFile.PackageSpec.Version, DependencyType.Project);
+
+            List<LockFileTarget> frameworks = assetsFile.Targets.Where(e => string.IsNullOrEmpty(e.RuntimeIdentifier)).ToList();
+
+            if (frameworks.Count == 0)
+            {
+                throw new InvalidProgramException("There are no valid frameworks to process in the assets file");
+            }
+
+            Dictionary<string, PackageDependencyGraph> aliasToDependencyGraph = new();
+            Dictionary<string, string> projectPathToProjectNameMap = new();
+            if (dependencyGraphSpec != null)
+            {
+                foreach (var project in dependencyGraphSpec.Projects)
+                {
+                    projectPathToProjectNameMap.Add(project.FilePath, project.Name);
+                }
+            }
+
+            foreach (var framework in frameworks)
+            {
+                var dependenyGraph = GenerateGraphForAGivenFramework(projectIdentity, framework, assetsFile.PackageSpec, projectPathToProjectNameMap);
+                var alias = assetsFile.PackageSpec.GetTargetFramework(framework.TargetFramework);
+                aliasToDependencyGraph.Add(alias.TargetAlias, dependenyGraph);
+            }
+
+            return aliasToDependencyGraph;
+        }
+
+        /// <summary>
+        /// Generate a graph given an assets file
+        /// </summary>
+        /// <param name="assetsFile">The assets file must not be null.</param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException">If the assets file is not valid</exception>
+        /// <exception cref="ArgumentNullException">If the assets file is null</exception>
         public static Dictionary<string, PackageDependencyGraph> GenerateAllDependencyGraphsFromAssetsFile(LockFile assetsFile)
         {
             ArgumentNullException.ThrowIfNull(assetsFile);
@@ -35,7 +74,7 @@ namespace Common
 
             foreach (var framework in frameworks)
             {
-                var dependenyGraph = GenerateGraphForAGivenFramework(projectIdentity, framework, assetsFile.PackageSpec);
+                var dependenyGraph = GenerateGraphForAGivenFramework(projectIdentity, framework, assetsFile.PackageSpec, new());
                 var alias = assetsFile.PackageSpec.GetTargetFramework(framework.TargetFramework);
                 aliasToDependencyGraph.Add(alias.TargetAlias, dependenyGraph);
             }
@@ -61,12 +100,15 @@ namespace Common
                 throw new InvalidProgramException("There are no valid frameworks to process in the assets file");
             }
 
-            return GenerateGraphForAGivenFramework(projectIdentity, frameworks[0], assetsFile.PackageSpec);
-            // TODO https://github.com/nkolev92/DependencyVisualizer/issues/1 - What should we do in the multi framework case?
+            return GenerateGraphForAGivenFramework(projectIdentity, frameworks[0], assetsFile.PackageSpec, new());
         }
 
-        private static PackageDependencyGraph GenerateGraphForAGivenFramework(DependencyNodeIdentity projectIdentity, LockFileTarget framework, PackageSpec packageSpec)
+        private static PackageDependencyGraph GenerateGraphForAGivenFramework(DependencyNodeIdentity projectIdentity, LockFileTarget framework, PackageSpec packageSpec, Dictionary<string, string> projectPathToProjectNameMap)
         {
+            ArgumentNullException.ThrowIfNull(projectIdentity);
+            ArgumentNullException.ThrowIfNull(framework);
+            ArgumentNullException.ThrowIfNull(packageSpec);
+            ArgumentNullException.ThrowIfNull(projectPathToProjectNameMap);
             PackageDependencyGraph graph = new(new PackageDependencyNode(projectIdentity));
 
             Dictionary<string, PackageDependencyNode> packageIdToNode = GenerateNodesForAllPackagesInGraph(framework);
@@ -98,10 +140,11 @@ namespace Common
             ProjectRestoreMetadataFrameworkInfo restoreMetadataFramework = packageSpec.GetRestoreMetadataFramework(framework.TargetFramework);
             foreach (var projectReference in restoreMetadataFramework.ProjectReferences)
             {
-                string inferedProjectName = Path.GetFileNameWithoutExtension(projectReference.ProjectPath);
-                // TODO - https://github.com/nkolev92/DependencyVisualizer/issues/6 What if the package id differs from the project path? We'd miss that.
-
-                PackageDependencyNode node = packageIdToNode[inferedProjectName];
+                if (!projectPathToProjectNameMap.TryGetValue(projectReference.ProjectPath, out string? inferedProjectName))
+                {
+                    inferedProjectName = Path.GetFileNameWithoutExtension(projectReference.ProjectPath);
+                }
+                PackageDependencyNode node = packageIdToNode[inferedProjectName]; // TODO NK - Add logging here.
                 VersionRange versionRange = new(node.Identity.Version);
                 graph.Node.ChildNodes.Add((node, versionRange));
                 node.ParentNodes.Add((graph.Node, versionRange));
