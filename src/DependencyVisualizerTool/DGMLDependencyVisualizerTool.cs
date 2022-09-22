@@ -22,12 +22,13 @@ namespace DependencyVisualizerTool
             XDocument document = TransGraphToDGMLXDocument(graph);
             document.Save(saveFilePath);
         }
+
         public static XDocument TransGraphToDGMLXDocument(PackageDependencyGraph graph)
         {
             // Visited nodes
             Dictionary<string, DGMLNode> nodes = new Dictionary<string, DGMLNode>();
             List<DGMLLink> links = new List<DGMLLink>();
-            
+
             //BFS on the graph
             Queue<Node<DependencyNodeIdentity, VersionRange>> queue = new Queue<Node<DependencyNodeIdentity, VersionRange>>();
             Node<DependencyNodeIdentity, VersionRange> firstNode = graph.Node;
@@ -92,7 +93,6 @@ namespace DependencyVisualizerTool
                             new XAttribute("Id", "Package"),
                             new XAttribute("Background", "None"),
                             new XAttribute("StrokeThickness", "1")))))
-                            
             );
             return document;
         }
@@ -124,8 +124,6 @@ namespace DependencyVisualizerTool
             public string Target { get; set; }
 
             public string Label { get; set; }
-
-            //public string Category { get; set; }
 
             public DGMLLink(string source, string target, string label)
             {
