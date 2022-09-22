@@ -361,6 +361,14 @@
           "NuGet.ProjectModel": "[6.3.0, )"
         }
       },
+      "logging": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.Extensions.Logging": "[6.0.0, )",
+          "Microsoft.Extensions.Logging.Abstractions": "[6.0.2, )",
+          "Microsoft.Extensions.Logging.Console": "[6.0.0, )"
+        }
+      },
       "Microsoft.Extensions.Logging": {
         "type": "CentralTransitive",
         "requested": "[6.0.0, )",
@@ -377,8 +385,8 @@
       "Microsoft.Extensions.Logging.Abstractions": {
         "type": "CentralTransitive",
         "requested": "[6.0.2, )",
-        "resolved": "6.0.0",
-        "contentHash": "/HggWBbTwy8TgebGSX5DBZ24ndhzi93sHUBDvP1IxbZD7FDokYzdAr6+vbWGjw2XAfR2EJ1sfKUotpjHnFWPxA=="
+        "resolved": "6.0.2",
+        "contentHash": "pwXCZKaA7m5wgmCj49dW+H1RPSY7U62SKLTQYCcavf/k3Nyt/WnBgAjG4jMGnwy9rElfAZ2KvxvM5CJzJWG0hg=="
       },
       "Microsoft.Extensions.Logging.Console": {
         "type": "CentralTransitive",
