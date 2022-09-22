@@ -1,7 +1,6 @@
 using FluentAssertions;
 using NuGet.ProjectModel;
 using NuGet.Versioning;
-using System.Text.RegularExpressions;
 using SharedUtility;
 
 namespace Common.Test
