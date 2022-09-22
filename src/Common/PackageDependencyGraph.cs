@@ -82,27 +82,6 @@ namespace Common
             return aliasToDependencyGraph;
         }
 
-        /// <summary>
-        /// Generate a graph given an assets file
-        /// </summary>
-        /// <param name="assetsFile">The assets file must not be null.</param>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
-        public static PackageDependencyGraph FromAssetsFile(LockFile assetsFile)
-        {
-            ArgumentNullException.ThrowIfNull(assetsFile);
-            DependencyNodeIdentity projectIdentity = new(assetsFile.PackageSpec.Name, assetsFile.PackageSpec.Version, DependencyType.Project);
-
-            List<LockFileTarget> frameworks = assetsFile.Targets.Where(e => string.IsNullOrEmpty(e.RuntimeIdentifier)).ToList();
-
-            if (frameworks.Count == 0)
-            {
-                throw new InvalidProgramException("There are no valid frameworks to process in the assets file");
-            }
-
-            return GenerateGraphForAGivenFramework(projectIdentity, frameworks[0], assetsFile.PackageSpec, new());
-        }
-
         private static PackageDependencyGraph GenerateGraphForAGivenFramework(DependencyNodeIdentity projectIdentity, LockFileTarget framework, PackageSpec packageSpec, Dictionary<string, string> projectPathToProjectNameMap)
         {
             ArgumentNullException.ThrowIfNull(projectIdentity);
