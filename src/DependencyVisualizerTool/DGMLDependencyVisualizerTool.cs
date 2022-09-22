@@ -46,8 +46,8 @@ namespace DependencyVisualizerTool
                 foreach (var child in current.ChildNodes)
                 {
                     DGMLLink currentLink = new DGMLLink(
-                        source: current.Identity.ToString(), 
-                        target: child.Item1.Identity.ToString(), 
+                        source: current.Identity.ToString(),
+                        target: child.Item1.Identity.ToString(),
                         label: child.Item2.ToString());
                     links.Add(currentLink);
                     if (!nodes.TryGetValue(child.Item1.Identity.ToString(), out _))
@@ -105,10 +105,10 @@ namespace DependencyVisualizerTool
 
             public string Category { get; set; }
 
-            public DGMLNode(string id, string label, DependencyType type) 
+            public DGMLNode(string id, string label, DependencyType type)
             {
-                this.Id = id; 
-                this.Label = label; 
+                this.Id = id;
+                this.Label = label;
                 this.Category = type.ToString();
             }
             public bool Equals(DGMLNode other)
