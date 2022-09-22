@@ -39,7 +39,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\..\DependencyVisualizerTool\DependencyVisualizerTool.csproj" />
+		<ProjectReference Include="..\..\..\SharedUtility\SharedUtility.csproj" />
 		<ProjectReference Include="..\..\Common.csproj" />
 	</ItemGroup>
 

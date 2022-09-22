@@ -1,0 +1,151 @@
+﻿{
+  "version": 3,
+  "targets": {
+    ".NETFramework,Version=v4.7.2": {
+      "A/1.0.0": {
+        "type": "package",
+        "dependencies": {
+          "B": "1.0.0"
+        },
+        "frameworkAssemblies": [
+          "System.Runtime"
+        ],
+        "compile": {
+          "lib/net45/a.dll": {}
+        },
+        "runtime": {
+          "lib/net45/a.dll": {}
+        },
+        "contentFiles": {
+          "contentFiles/any/any/config.xml": {
+            "buildAction": "Compile",
+            "codeLanguage": "any",
+            "copyToOutput": false
+          },
+          "contentFiles/cs/net45/code.cs": {
+            "buildAction": "Compile",
+            "codeLanguage": "cs",
+            "copyToOutput": false
+          }
+        },
+        "build": {
+          "build/net45/A.targets": {}
+        },
+        "runtimeTargets": {
+          "runtimes/any/native/a.dll": {
+            "assetType": "native",
+            "rid": "any"
+          }
+        }
+      },
+      "B/2.0.0": {
+        "type": "package",
+        "frameworkAssemblies": [
+          "System.Runtime"
+        ],
+        "compile": {
+          "lib/net45/a.dll": {}
+        },
+        "runtime": {
+          "lib/net45/a.dll": {}
+        },
+        "contentFiles": {
+          "contentFiles/any/any/config.xml": {
+            "buildAction": "Compile",
+            "codeLanguage": "any",
+            "copyToOutput": false
+          },
+          "contentFiles/cs/net45/code.cs": {
+            "buildAction": "Compile",
+            "codeLanguage": "cs",
+            "copyToOutput": false
+          }
+        },
+        "build": {
+          "build/net45/B.targets": {}
+        },
+        "runtimeTargets": {
+          "runtimes/any/native/a.dll": {
+            "assetType": "native",
+            "rid": "any"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "A/1.0.0": {
+      "sha512": "R9ugYjJp4iTRZB6SMOmDa/FpNY6q3NazBv7bn2aMV6KLfTQ0Xd0kuTekCUHiI2e4XdTRHxVBTcvYDEChpTIsog==",
+      "type": "package",
+      "path": "a/1.0.0",
+      "hasTools": true,
+      "files": [
+        ".nupkg.metadata",
+        "a.1.0.0.nupkg.sha512",
+        "a.nuspec",
+        "build/net45/A.targets",
+        "contentFiles/any/any/config.xml",
+        "contentFiles/cs/net45/code.cs",
+        "lib/net45/a.dll",
+        "lib/netstandard1.0/a.dll",
+        "runtimes/any/native/a.dll",
+        "tools/a.exe"
+      ]
+    },
+    "B/2.0.0": {
+      "sha512": "2Ow8MOo7z73x4u2YnNNpOdc1xMU/E4Mdorj8d5f7oWs5nXWMuGZCGuu/U/TP2AgNL5wXfstMV5tBNYVXeOa2Cg==",
+      "type": "package",
+      "path": "b/2.0.0",
+      "hasTools": true,
+      "files": [
+        ".nupkg.metadata",
+        "b.2.0.0.nupkg.sha512",
+        "b.nuspec",
+        "build/net45/B.targets",
+        "contentFiles/any/any/config.xml",
+        "contentFiles/cs/net45/code.cs",
+        "lib/net45/a.dll",
+        "lib/netstandard1.0/a.dll",
+        "runtimes/any/native/a.dll",
+        "tools/a.exe"
+      ]
+    }
+  },
+  "projectFileDependencyGroups": {
+    ".NETFramework,Version=v4.7.2": [
+      "A >= 1.0.0",
+      "B >= 2.0.0"
+    ]
+  },
+  "packageFolders": {
+    "C:\\Code\\NuGet.Client\\.test\\work\\5a847a89\\8b0e348c\\globalPackages": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "C:\\Code\\NuGet.Client\\.test\\work\\5a847a89\\8b0e348c\\solution\\TestProject\\TestProject.json\\TestProject.csproj",
+      "projectName": "TestProject",
+      "projectPath": "C:\\Code\\NuGet.Client\\.test\\work\\5a847a89\\8b0e348c\\solution\\TestProject\\TestProject.json\\TestProject.csproj",
+      "outputPath": "C:\\Code\\NuGet.Client\\.test\\work\\5a847a89\\8b0e348c\\solution\\TestProject\\TestProject.json",
+      "projectStyle": "PackageReference",
+      "originalTargetFrameworks": [
+        "net472"
+      ],
+      "frameworks": {
+        "net472": {
+          "targetAlias": "net472",
+          "projectReferences": {}
+        }
+      }
+    },
+    "frameworks": {
+      "net472": {
+        "targetAlias": "net472",
+        "dependencies": {
+          "A": "[1.0.0, )",
+          "B": "[2.0.0, )"
+        }
+      }
+    }
+  }
+}
