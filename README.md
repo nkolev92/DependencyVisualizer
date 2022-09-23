@@ -12,9 +12,8 @@ The DGML file could be visualized as following:
 - The number on the arrow represents the required [version range](https://learn.microsoft.com/en-us/nuget/concepts/package-versioning#version-ranges).
 
 ## How to use
-### Preparation
    * Do solution restore or restore on a specific project.
-   * Run this tool. 
+   * Run this tool (see Synopsis for more details about this tool). 
    * Open the generated .dgml file(s) in Visual Studio with Graph Document Editor or other Editor which supports the visualization of DGML file.
      (You may set open with Graph Document Editor as default in Visual Studio so next time you just need to double click the .dgml file.)
 
