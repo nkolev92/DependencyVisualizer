@@ -7,9 +7,9 @@ It can generate [.dgml](https://learn.microsoft.com/en-us/visualstudio/modeling/
 The DGML file could be visualized as following:
 
 ![DependencyGraphExample](resources/DependencyGraphExample.jpg)
-- The light blude node represents project and its version.  
-- The white node represents package and the resolved version.
-- The number on the arrow represents the required [version range](https://learn.microsoft.com/en-us/nuget/concepts/package-versioning#version-ranges).
+- The light blue nodes represent project and its version.  
+- The white nodes represent package and the resolved version.
+- The numbers on the arrows represent the required [version range](https://learn.microsoft.com/en-us/nuget/concepts/package-versioning#version-ranges).
 
 ## How to use
 ### Preparation
