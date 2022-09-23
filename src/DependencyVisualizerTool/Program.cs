@@ -18,7 +18,7 @@ namespace DependencyVisualizerTool
         {
             var fileArgument = new Argument<FileInfo>(
                 name: "projectFilePath",
-                description: "path to the project file to be used for finding the package.assets.file",
+                description: "Project file path.",
                 parse: result =>
                 {
                     string? filePath = result.Tokens.Single().Value;
@@ -32,8 +32,9 @@ namespace DependencyVisualizerTool
                 });
 
             var outputOption = new Option<string?>(
-                name: "--outputFolder",
-                description: "A folder path used to store generated DGML files. By default, it's the project folder.");
+                name: "--output",
+                description: "Output folder path used to store generated graph file(s). By default, it's the project folder.");
+            outputOption.AddAlias("-o");
 
             var rootCommand = new RootCommand("Dependency visualizer app");
             rootCommand.AddArgument(fileArgument);
@@ -83,6 +84,9 @@ namespace DependencyVisualizerTool
                 {
                     string errorMessage = "Exception is thrown when generating the DGML file.";
                     AppLogger.Logger.LogError(errorMessage);
+
+                    //AppLogger.Logger.LogDebug(e.Message);
+                    //AppLogger.Logger.LogDebug(e.StackTrace);
                     return;
                 }
             }
