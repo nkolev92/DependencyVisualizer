@@ -1,14 +1,11 @@
 ﻿// See https://aka.ms/new-console-template for more information
-using Microsoft.Build.Locator;
 using System.CommandLine;
-using Logging;
-using Microsoft.Extensions.Logging;
-using static DependencyVisualizerTool.MSBuildUtility;
-using NuGet.ProjectModel;
-using static NuGet.Packaging.PackagingConstants;
-using Newtonsoft.Json;
-using System.Globalization;
 using Common;
+using Logging;
+using Microsoft.Build.Locator;
+using Microsoft.Extensions.Logging;
+using NuGet.ProjectModel;
+using static DependencyVisualizerTool.MSBuildUtility;
 
 namespace DependencyVisualizerTool
 {
@@ -55,7 +52,7 @@ namespace DependencyVisualizerTool
             string projectExtensionsPath = GetMSBuildProjectExtensionsPath(projectFile.FullName);
             LockFile assetFile = GetAssetsFilePath(projectExtensionsPath);
             DependencyGraphSpec dgspecFile = GetDgspecFilePath(projectExtensionsPath, projectFile);
-   
+
             if (outputFolder == null)
             {
                 outputFolder = Path.GetDirectoryName(projectFile.FullName);
@@ -80,7 +77,7 @@ namespace DependencyVisualizerTool
                 {
                     DGMLDependencyVisualizerTool.TransGraphToDGMLFile(keyValuePair.Value, dgmlFileName);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     string errorMessage = "Exception is thrown when generating the DGML file.";
                     AppLogger.Logger.LogError(errorMessage);
