@@ -9,7 +9,7 @@ The DGML file could be visualized as following:
 ![DependencyGraphExample](resources/DependencyGraphExample.jpg)
 - The light blude node represents project and its version.  
 - The white node represents package and the resolved version.
-- The numbers on the arrows represents the required [version range](https://learn.microsoft.com/en-us/nuget/concepts/package-versioning#version-ranges).
+- The number on the arrow represents the required [version range](https://learn.microsoft.com/en-us/nuget/concepts/package-versioning#version-ranges).
 
 ## How to use
 ### Preparation
@@ -38,8 +38,8 @@ Show help information
 ##### `-o| --output`
 
 Specify a folder to store the generated .dgml files. This is optional. 
-If it's not specified, it will be the project folder by default.
-If the folder is not created, the command will help you generate the folder.
+* If it's not specified, it will be the project folder by default.
+* If the folder is not created, the command will help you generate the folder.
 
 #### Examples
 
@@ -52,7 +52,7 @@ Generate .dgml file(s) in a specified project folder:
 `DependencyVisualizerTool.exe C:\repos\DependencyGraphFolder`
 
 #### Notes
-- The name of the .dgml file will be projectName_TFM.dgml
+- The name of the .dgml file will be *projectName_TFM.dgml*
 - For project with multiple TFMs(target frameworks), there will be multiple .dgml files generated.
 
 
