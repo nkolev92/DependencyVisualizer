@@ -97,7 +97,7 @@ namespace DependencyVisualizerTool
                             new XAttribute("StrokeThickness", "1")),
                 new XElement(XName.Get("Category", DGMLxmlns),
                             new XAttribute("Id", "VulnerablePackage"),
-                            new XAttribute("Background", "Lightred"),
+                            new XAttribute("Background", "Red"),
                             new XAttribute("StrokeThickness", "1"))))
             );
             return document;
