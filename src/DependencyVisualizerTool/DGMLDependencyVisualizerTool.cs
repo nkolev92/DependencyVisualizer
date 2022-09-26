@@ -58,7 +58,7 @@ namespace DependencyVisualizerTool
                                                id: child.Item1.Identity.ToString(),
                                                label: child.Item1.Identity.ToString(),
                                                type: child.Item1.Identity.Type,
-                                               firstNode.Identity.Vulnerable);
+                                               child.Item1.Identity.Vulnerable);
                         nodes.Add(child.Item1.Identity.ToString(), currentDGML);
                     }
                 }
