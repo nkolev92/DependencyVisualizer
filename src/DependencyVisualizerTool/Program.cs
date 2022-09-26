@@ -91,6 +91,7 @@ namespace DependencyVisualizerTool
             }
             string infoMessage = $"Successfully created dependency graph file(s) under {outputFolder}";
             AppLogger.Logger.LogInformation(infoMessage);
+            System.Console.WriteLine(infoMessage);
         }
         private static LockFile GetAssetsFilePath(string projectExtensionsPath)
         {
