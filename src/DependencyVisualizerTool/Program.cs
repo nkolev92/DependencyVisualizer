@@ -33,20 +33,25 @@ namespace DependencyVisualizerTool
                 description: "Output folder path used to store generated graph file(s). By default, it's the project folder.");
             outputOption.AddAlias("-o");
 
+            var checkVulnerabilityOption = new Option<bool?>(
+                name: "--visualize-vulnerabilities",
+                description: "Whether to visualize the vulnerabilities for your package graph");
+
             var rootCommand = new RootCommand("Dependency visualizer app");
             rootCommand.AddArgument(fileArgument);
             rootCommand.AddOption(outputOption);
+            rootCommand.AddOption(checkVulnerabilityOption);
 
-            rootCommand.SetHandler((fileArgument, outputOption) =>
+            rootCommand.SetHandler((fileArgument, outputOption, checkVulnerabilityOption) =>
             {
-                GenerateGraph(fileArgument, outputOption);
+                GenerateGraph(fileArgument, outputOption, checkVulnerabilityOption);
             },
-            fileArgument, outputOption);
+            fileArgument, outputOption, checkVulnerabilityOption);
 
             return rootCommand.InvokeAsync(args).Result;
         }
 
-        private static void GenerateGraph(FileInfo projectFile, string? outputFolder)
+        private static void GenerateGraph(FileInfo projectFile, string? outputFolder, bool? checkVulnerabilities)
         {
             MSBuildLocator.RegisterDefaults();
             string projectExtensionsPath = GetMSBuildProjectExtensionsPath(projectFile.FullName);
@@ -67,7 +72,7 @@ namespace DependencyVisualizerTool
                 return;
             }
 
-            Dictionary<string, PackageDependencyGraph> dictGraph = PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFile(assetFile, dgspecFile);
+            Dictionary<string, PackageDependencyGraph> dictGraph = PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFile(assetFile, dgspecFile, checkVulnerabilities == true);
             foreach (var keyValuePair in dictGraph)
             {
                 string projectName = Path.GetFileNameWithoutExtension(projectFile.Name);
@@ -81,9 +86,6 @@ namespace DependencyVisualizerTool
                 {
                     string errorMessage = "Exception is thrown when generating the DGML file.";
                     AppLogger.Logger.LogError(errorMessage);
-
-                    //AppLogger.Logger.LogDebug(e.Message);
-                    //AppLogger.Logger.LogDebug(e.StackTrace);
                     return;
                 }
             }

@@ -1,4 +1,6 @@
-﻿using NuGet.Packaging.Core;
+﻿using Logging;
+using Microsoft.Extensions.Logging;
+using NuGet.Packaging.Core;
 using NuGet.ProjectModel;
 using NuGet.Versioning;
 using System.Diagnostics;
@@ -19,7 +21,7 @@ namespace Common
         /// <returns></returns>
         /// <exception cref="InvalidOperationException">If the assets file is not valid</exception>
         /// <exception cref="ArgumentNullException">If the assets file is null</exception>
-        public static Dictionary<string, PackageDependencyGraph> GenerateAllDependencyGraphsFromAssetsFile(LockFile assetsFile, DependencyGraphSpec dependencyGraphSpec)
+        public static Dictionary<string, PackageDependencyGraph> GenerateAllDependencyGraphsFromAssetsFile(LockFile assetsFile, DependencyGraphSpec dependencyGraphSpec, bool checkSourcesForVulnerabilities = false)
         {
             ArgumentNullException.ThrowIfNull(assetsFile);
             DependencyNodeIdentity projectIdentity = new(assetsFile.PackageSpec.Name, assetsFile.PackageSpec.Version, DependencyType.Project);
@@ -43,7 +45,7 @@ namespace Common
 
             foreach (var framework in frameworks)
             {
-                var dependenyGraph = GenerateGraphForAGivenFramework(projectIdentity, framework, assetsFile.PackageSpec, projectPathToProjectNameMap);
+                var dependenyGraph = GenerateGraphForAGivenFramework(projectIdentity, framework, assetsFile.PackageSpec, projectPathToProjectNameMap, checkSourcesForVulnerabilities);
                 var alias = assetsFile.PackageSpec.GetTargetFramework(framework.TargetFramework);
                 aliasToDependencyGraph.Add(alias.TargetAlias, dependenyGraph);
             }
@@ -58,7 +60,7 @@ namespace Common
         /// <returns></returns>
         /// <exception cref="InvalidOperationException">If the assets file is not valid</exception>
         /// <exception cref="ArgumentNullException">If the assets file is null</exception>
-        public static Dictionary<string, PackageDependencyGraph> GenerateAllDependencyGraphsFromAssetsFile(LockFile assetsFile)
+        public static Dictionary<string, PackageDependencyGraph> GenerateAllDependencyGraphsFromAssetsFile(LockFile assetsFile, bool checkSourcesForVulnerabilities = false)
         {
             ArgumentNullException.ThrowIfNull(assetsFile);
             DependencyNodeIdentity projectIdentity = new(assetsFile.PackageSpec.Name, assetsFile.PackageSpec.Version, DependencyType.Project);
@@ -74,7 +76,7 @@ namespace Common
 
             foreach (var framework in frameworks)
             {
-                var dependenyGraph = GenerateGraphForAGivenFramework(projectIdentity, framework, assetsFile.PackageSpec, new());
+                var dependenyGraph = GenerateGraphForAGivenFramework(projectIdentity, framework, assetsFile.PackageSpec, new(), checkSourcesForVulnerabilities);
                 var alias = assetsFile.PackageSpec.GetTargetFramework(framework.TargetFramework);
                 aliasToDependencyGraph.Add(alias.TargetAlias, dependenyGraph);
             }
@@ -82,7 +84,7 @@ namespace Common
             return aliasToDependencyGraph;
         }
 
-        private static PackageDependencyGraph GenerateGraphForAGivenFramework(DependencyNodeIdentity projectIdentity, LockFileTarget framework, PackageSpec packageSpec, Dictionary<string, string> projectPathToProjectNameMap)
+        private static PackageDependencyGraph GenerateGraphForAGivenFramework(DependencyNodeIdentity projectIdentity, LockFileTarget framework, PackageSpec packageSpec, Dictionary<string, string> projectPathToProjectNameMap, bool checkVulnerabilities)
         {
             ArgumentNullException.ThrowIfNull(projectIdentity);
             ArgumentNullException.ThrowIfNull(framework);
@@ -91,6 +93,23 @@ namespace Common
             PackageDependencyGraph graph = new(new PackageDependencyNode(projectIdentity));
 
             Dictionary<string, PackageDependencyNode> packageIdToNode = GenerateNodesForAllPackagesInGraph(framework);
+
+
+            if (checkVulnerabilities)
+            {
+                AppLogger.Logger.Log(LogLevel.Information, "Visualizing vulnerabilities for the package graph.");
+                Thread.Sleep(1500);
+                foreach (var package in packageIdToNode)
+                {
+                    var packageIdentity = (PackageIdentity)package.Value.Identity;
+                    if (IsVulnerable(packageIdentity))
+                    {
+                        package.Value.Identity.Vulnerable = true;
+                    }
+
+                }
+            }
+
             packageIdToNode.Add(graph.Node.Identity.Id, (PackageDependencyNode)graph.Node);
 
             // Populate Node to Node edges
@@ -146,6 +165,16 @@ namespace Common
 
                 return seenPackages;
             }
+        }
+
+        private static bool IsVulnerable(PackageIdentity packageIdentity)
+        {
+            // Hardcode it here. 
+            if (packageIdentity.Id.Equals("Newtonsoft.Json", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+            return false;
         }
 
         internal static LockFile GetAssetsFile(string fileName)

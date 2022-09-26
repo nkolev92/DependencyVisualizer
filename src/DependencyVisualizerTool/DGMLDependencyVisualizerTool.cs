@@ -36,7 +36,8 @@ namespace DependencyVisualizerTool
             DGMLNode firstNodeDGML = new DGMLNode(
                                      id: firstNode.Identity.ToString(),
                                      label: firstNode.Identity.ToString(),
-                                     type: firstNode.Identity.Type);
+                                     type: firstNode.Identity.Type,
+                                     isVulnerable: firstNode.Identity.Vulnerable);
             nodes.Add(firstNode.Identity.ToString(), firstNodeDGML);
 
             while (queue.Count > 0)
@@ -56,7 +57,8 @@ namespace DependencyVisualizerTool
                         DGMLNode currentDGML = new DGMLNode(
                                                id: child.Item1.Identity.ToString(),
                                                label: child.Item1.Identity.ToString(),
-                                               type: child.Item1.Identity.Type);
+                                               type: child.Item1.Identity.Type,
+                                               firstNode.Identity.Vulnerable);
                         nodes.Add(child.Item1.Identity.ToString(), currentDGML);
                     }
                 }
@@ -92,6 +94,10 @@ namespace DependencyVisualizerTool
                 new XElement(XName.Get("Category", DGMLxmlns),
                             new XAttribute("Id", "Package"),
                             new XAttribute("Background", "None"),
+                            new XAttribute("StrokeThickness", "1")),
+                new XElement(XName.Get("Category", DGMLxmlns),
+                            new XAttribute("Id", "VulnerablePackage"),
+                            new XAttribute("Background", "Lightred"),
                             new XAttribute("StrokeThickness", "1"))))
             );
             return document;
@@ -105,12 +111,13 @@ namespace DependencyVisualizerTool
 
             public string Category { get; set; }
 
-            public DGMLNode(string id, string label, DependencyType type)
+            public DGMLNode(string id, string label, DependencyType type, bool isVulnerable)
             {
                 this.Id = id;
                 this.Label = label;
-                this.Category = type.ToString();
+                this.Category = isVulnerable ? "VulnerablePackage" : type.ToString();
             }
+
             public bool Equals(DGMLNode other)
             {
                 return Id.Equals(other.Id, StringComparison.OrdinalIgnoreCase);
