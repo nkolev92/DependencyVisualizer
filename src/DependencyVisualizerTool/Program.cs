@@ -44,6 +44,7 @@ namespace DependencyVisualizerTool
 
             rootCommand.SetHandler((fileArgument, outputOption, checkVulnerabilityOption) =>
             {
+                System.Diagnostics.Debugger.Launch();
                 GenerateGraph(fileArgument, outputOption, checkVulnerabilityOption);
             },
             fileArgument, outputOption, checkVulnerabilityOption);

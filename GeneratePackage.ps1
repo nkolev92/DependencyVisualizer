@@ -1,1 +1,1 @@
-dotnet pack .\src\DependencyVisualizerTool\DependencyVisualizerTool.csproj --output artifacts -c Release
+dotnet pack .\src\DependencyVisualizerTool\DependencyVisualizerTool.csproj --output artifacts
