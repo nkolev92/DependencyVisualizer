@@ -100,7 +100,7 @@ namespace DependencyVisualizerTool.Test
 
             string expectedDGML = RemoveWhitespace(TestHelpers.GetResource($"DependencyVisualizerTool.Test.compiler.resources.singlepackagereference.dgml", GetType()));
 
-            actualDGML.Should().Be(expectedDGML, because: actualDGML);
+            actualDGML.Should().Be(expectedDGML);
         }
 
         [Fact]

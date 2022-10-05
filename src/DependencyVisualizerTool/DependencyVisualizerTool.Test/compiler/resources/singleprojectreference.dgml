@@ -9,5 +9,6 @@
   <Categories>
     <Category Id="Project" Background="Lightblue" StrokeThickness="2" />
     <Category Id="Package" Background="None" StrokeThickness="1" />
+    <CategoryId="VulnerablePackage"Background="Red"StrokeThickness="1"/>
   </Categories>
 </DirectedGraph>
