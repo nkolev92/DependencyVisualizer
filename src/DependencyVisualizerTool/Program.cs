@@ -54,7 +54,7 @@ namespace DependencyVisualizerTool
             return rootCommand.InvokeAsync(args).Result;
         }
 
-        private static void GenerateGraph(FileInfo projectFile, string? outputFolder, bool? checkVulnerabilities)
+        private static int GenerateGraph(FileInfo projectFile, string? outputFolder, bool? checkVulnerabilities)
         {
             MSBuildLocator.RegisterDefaults();
             string projectExtensionsPath = GetMSBuildProjectExtensionsPath(projectFile.FullName);
@@ -72,7 +72,7 @@ namespace DependencyVisualizerTool
 
             if (assetFile == null || dgspecFile == null || outputFolder == null)
             {
-                return;
+                return 1;
             }
 
             Dictionary<string, PackageDependencyGraph> dictGraph = PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFile(assetFile, dgspecFile, checkVulnerabilities == true);
@@ -87,14 +87,15 @@ namespace DependencyVisualizerTool
                 }
                 catch (Exception e)
                 {
-                    string errorMessage = "Exception is thrown when generating the DGML file.";
-                    AppLogger.Logger.LogError(errorMessage);
-                    return;
+                    string errorMessage = "Exception is thrown when generating the DGML file. {0}";
+                    AppLogger.Logger.LogError(errorMessage, e);
+                    return 1;
                 }
             }
             string infoMessage = $"Successfully created dependency graph file(s) under {outputFolder}";
             AppLogger.Logger.LogInformation(infoMessage);
-            System.Console.WriteLine(infoMessage);
+            Console.WriteLine(infoMessage);
+            return 0;
         }
         private static LockFile GetAssetsFilePath(string projectExtensionsPath)
         {
