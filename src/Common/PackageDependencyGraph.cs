@@ -19,6 +19,12 @@ namespace Common
         {
         }
 
+        public static Dictionary<string, PackageDependencyGraph> GenerateAllDependencyGraphsFromAssetsFile(LockFile assetFile, DependencyGraphSpec dgspecFile, bool checkSourcesForVulnerabilities = false)
+        {
+            return GenerateAllDependencyGraphsFromAssetsFileAsync(assetFile, dgspecFile, checkSourcesForVulnerabilities).Result;
+
+        }
+
         /// <summary>
         /// Generate a graph given an assets file
         /// </summary>
@@ -26,7 +32,7 @@ namespace Common
         /// <returns></returns>
         /// <exception cref="InvalidOperationException">If the assets file is not valid</exception>
         /// <exception cref="ArgumentNullException">If the assets file is null</exception>
-        public static Dictionary<string, PackageDependencyGraph> GenerateAllDependencyGraphsFromAssetsFile(LockFile assetsFile, DependencyGraphSpec dependencyGraphSpec, bool checkSourcesForVulnerabilities = false)
+        public static async Task<Dictionary<string, PackageDependencyGraph>> GenerateAllDependencyGraphsFromAssetsFileAsync(LockFile assetsFile, DependencyGraphSpec dependencyGraphSpec, bool checkSourcesForVulnerabilities = false)
         {
             ArgumentNullException.ThrowIfNull(assetsFile);
             DependencyNodeIdentity projectIdentity = new(assetsFile.PackageSpec.Name, assetsFile.PackageSpec.Version, DependencyType.Project);
@@ -50,12 +56,17 @@ namespace Common
 
             foreach (var framework in frameworks)
             {
-                var dependenyGraph = GenerateGraphForAGivenFramework(projectIdentity, framework, assetsFile.PackageSpec, projectPathToProjectNameMap, checkSourcesForVulnerabilities);
+                var dependenyGraph = await GenerateGraphForAGivenFramework(projectIdentity, framework, assetsFile.PackageSpec, projectPathToProjectNameMap, checkSourcesForVulnerabilities);
                 var alias = assetsFile.PackageSpec.GetTargetFramework(framework.TargetFramework);
                 aliasToDependencyGraph.Add(alias.TargetAlias, dependenyGraph);
             }
 
             return aliasToDependencyGraph;
+        }
+
+        public static Dictionary<string, PackageDependencyGraph> GenerateAllDependencyGraphsFromAssetsFile(LockFile assetsFile, bool checkSourcesForVulnerabilities = false)
+        {
+            return GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, checkSourcesForVulnerabilities).Result;
         }
 
         /// <summary>
@@ -65,7 +76,7 @@ namespace Common
         /// <returns></returns>
         /// <exception cref="InvalidOperationException">If the assets file is not valid</exception>
         /// <exception cref="ArgumentNullException">If the assets file is null</exception>
-        public static Dictionary<string, PackageDependencyGraph> GenerateAllDependencyGraphsFromAssetsFile(LockFile assetsFile, bool checkSourcesForVulnerabilities = false)
+        public static async Task<Dictionary<string, PackageDependencyGraph>> GenerateAllDependencyGraphsFromAssetsFileAsync(LockFile assetsFile, bool checkSourcesForVulnerabilities = false)
         {
             ArgumentNullException.ThrowIfNull(assetsFile);
             DependencyNodeIdentity projectIdentity = new(assetsFile.PackageSpec.Name, assetsFile.PackageSpec.Version, DependencyType.Project);
@@ -81,7 +92,7 @@ namespace Common
 
             foreach (var framework in frameworks)
             {
-                var dependenyGraph = GenerateGraphForAGivenFramework(projectIdentity, framework, assetsFile.PackageSpec, new(), checkSourcesForVulnerabilities);
+                var dependenyGraph = await GenerateGraphForAGivenFramework(projectIdentity, framework, assetsFile.PackageSpec, new(), checkSourcesForVulnerabilities);
                 var alias = assetsFile.PackageSpec.GetTargetFramework(framework.TargetFramework);
                 aliasToDependencyGraph.Add(alias.TargetAlias, dependenyGraph);
             }
@@ -89,7 +100,7 @@ namespace Common
             return aliasToDependencyGraph;
         }
 
-        private static PackageDependencyGraph GenerateGraphForAGivenFramework(DependencyNodeIdentity projectIdentity, LockFileTarget framework, PackageSpec packageSpec, Dictionary<string, string> projectPathToProjectNameMap, bool checkVulnerabilities)
+        private static async Task<PackageDependencyGraph> GenerateGraphForAGivenFramework(DependencyNodeIdentity projectIdentity, LockFileTarget framework, PackageSpec packageSpec, Dictionary<string, string> projectPathToProjectNameMap, bool checkVulnerabilities)
         {
             ArgumentNullException.ThrowIfNull(projectIdentity);
             ArgumentNullException.ThrowIfNull(framework);
@@ -102,16 +113,17 @@ namespace Common
 
             if (checkVulnerabilities)
             {
-                AppLogger.Logger.Log(LogLevel.Information, "Visualizing vulnerabilities for the package graph.");
-                Thread.Sleep(1500);
+                var sourceRepositories = GetHTTPSourceRepositories(packageSpec);
+                var metadataResource = await GetResourcesAsync(sourceRepositories);
+                Dictionary<PackageIdentity, bool> vulnerabilitiesCache = new();
+
                 foreach (var package in packageIdToNode)
                 {
                     var packageIdentity = (PackageIdentity)package.Value.Identity;
-                    if (IsVulnerable(packageIdentity))
+                    if (await IsVulnerableAsync(packageIdentity, metadataResource, vulnerabilitiesCache))
                     {
                         package.Value.Identity.Vulnerable = true;
                     }
-
                 }
             }
 
@@ -147,7 +159,7 @@ namespace Common
                 {
                     inferedProjectName = Path.GetFileNameWithoutExtension(projectReference.ProjectPath);
                 }
-                PackageDependencyNode node = packageIdToNode[inferedProjectName]; // TODO NK - Add logging here.
+                PackageDependencyNode node = packageIdToNode[inferedProjectName]; // TODO - https://github.com/nkolev92/DependencyVisualizer/issues/5
                 VersionRange versionRange = new(node.Identity.Version);
                 graph.Node.ChildNodes.Add((node, versionRange));
                 node.ParentNodes.Add((graph.Node, versionRange));
@@ -172,16 +184,6 @@ namespace Common
             }
         }
 
-        private static bool IsVulnerable(PackageIdentity packageIdentity)
-        {
-            // Hardcode it here. 
-            if (packageIdentity.Id.Equals("Newtonsoft.Json", StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-            return false;
-        }
-
         private static async Task<bool> IsVulnerableAsync(PackageIdentity packageIdentity, List<PackageMetadataResource> metadataResources, Dictionary<PackageIdentity, bool> vulnerabilitiesCache)
         {
             if (!metadataResources.Any())
@@ -197,10 +199,10 @@ namespace Common
             var vulnerable = false;
             await Parallel.ForEachAsync(metadataResources, async (resource, cancellationToken) =>
             {
-                var metadata = await resource.GetMetadataAsync(packageIdentity, new SourceCacheContext(), NuGet.Common.NullLogger.Instance, cancellationToken);
+                var metadata = await resource.GetMetadataAsync(packageIdentity, new SourceCacheContext(), NuGet.Common.NullLogger.Instance, cancellationToken); // TODO - https://github.com/nkolev92/DependencyVisualizer/issues/5
                 if (metadata != null)
                 {
-                    vulnerable |= metadata.Vulnerabilities.Any();
+                    vulnerable |= metadata.Vulnerabilities?.Any() == true;
                 }
             });
 
@@ -208,7 +210,7 @@ namespace Common
             return vulnerable;
         }
 
-        private static async Task<List<PackageMetadataResource>> GetResources(Dictionary<PackageSource, SourceRepository> sourceRepositories)
+        private static async Task<List<PackageMetadataResource>> GetResourcesAsync(Dictionary<PackageSource, SourceRepository> sourceRepositories)
         {
             var resources = new List<PackageMetadataResource>() { };
             foreach (var repository in sourceRepositories)
@@ -219,12 +221,11 @@ namespace Common
             return resources;
         }
 
-        private static Dictionary<PackageSource, SourceRepository> GetHTTPSourceRepositories(DependencyGraphSpec dependencyGraphSpec)
+        private static Dictionary<PackageSource, SourceRepository> GetHTTPSourceRepositories(PackageSpec projectPackageSpec)
         {
             using var settingsLoadContext = new SettingsLoadingContext();
 
             Dictionary<PackageSource, SourceRepository> sourceRepositoryCache = new();
-            var projectPackageSpec = dependencyGraphSpec.GetProjectSpec(dependencyGraphSpec.Restore.First());
 
             var settings = Settings.LoadImmutableSettingsGivenConfigPaths(projectPackageSpec.RestoreMetadata.ConfigFilePaths, settingsLoadContext);
             var sources = projectPackageSpec.RestoreMetadata.Sources;
@@ -252,6 +253,5 @@ namespace Common
 
             return new LockFileFormat().Read(fileName); // TODO - https://github.com/nkolev92/DependencyVisualizer/issues/5
         }
-
     }
 }

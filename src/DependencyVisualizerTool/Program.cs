@@ -42,19 +42,19 @@ namespace DependencyVisualizerTool
             rootCommand.AddOption(outputOption);
             rootCommand.AddOption(checkVulnerabilityOption);
 
-            rootCommand.SetHandler((fileArgument, outputOption, checkVulnerabilityOption) =>
+            rootCommand.SetHandler(async (fileArgument, outputOption, checkVulnerabilityOption) =>
             {
 #if DEBUG
-    System.Diagnostics.Debugger.Launch();
+                System.Diagnostics.Debugger.Launch();
 #endif
-                GenerateGraph(fileArgument, outputOption, checkVulnerabilityOption);
+                await GenerateGraph(fileArgument, outputOption, checkVulnerabilityOption);
             },
             fileArgument, outputOption, checkVulnerabilityOption);
 
             return rootCommand.InvokeAsync(args).Result;
         }
 
-        private static int GenerateGraph(FileInfo projectFile, string? outputFolder, bool? checkVulnerabilities)
+        private static async Task<int> GenerateGraph(FileInfo projectFile, string? outputFolder, bool? checkVulnerabilities)
         {
             MSBuildLocator.RegisterDefaults();
             string projectExtensionsPath = GetMSBuildProjectExtensionsPath(projectFile.FullName);
@@ -75,7 +75,7 @@ namespace DependencyVisualizerTool
                 return 1;
             }
 
-            Dictionary<string, PackageDependencyGraph> dictGraph = PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFile(assetFile, dgspecFile, checkVulnerabilities == true);
+            Dictionary<string, PackageDependencyGraph> dictGraph = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetFile, dgspecFile, checkVulnerabilities == true);
             foreach (var keyValuePair in dictGraph)
             {
                 string projectName = Path.GetFileNameWithoutExtension(projectFile.Name);
