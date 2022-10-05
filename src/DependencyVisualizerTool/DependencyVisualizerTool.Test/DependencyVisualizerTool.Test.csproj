@@ -21,6 +21,7 @@
 		<None Remove="compiler\resources\nuget.common.assets.json" />
 		<None Remove="compiler\resources\singlepackagereference.assets.json" />
 		<None Remove="compiler\resources\singleprojectreference.assets.json" />
+		<None Remove="compiler\resources\test.dgml" />
 		<None Remove="compiler\resources\transitivepackagereference.assets.json" />
 		<None Remove="compiler\resources\transitiveprojectreference.assets.json" />
 	</ItemGroup>

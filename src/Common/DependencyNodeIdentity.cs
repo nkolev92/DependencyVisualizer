@@ -7,6 +7,8 @@ namespace Common
     {
         public DependencyType Type { get; }
 
+        public bool Vulnerable { get; set; }
+
         public DependencyNodeIdentity(string id, NuGetVersion version, DependencyType type) : base(id, version)
         {
             Type = type;
@@ -14,14 +16,15 @@ namespace Common
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(base.GetHashCode(), Type);
+            return HashCode.Combine(base.GetHashCode(), Type, Vulnerable);
         }
 
         public override bool Equals(object? obj)
         {
             return obj is DependencyNodeIdentity identity &&
                    base.Equals(obj) &&
-                   Type == identity.Type;
+                   Type == identity.Type &&
+                   Vulnerable == identity.Vulnerable;
         }
     }
 }

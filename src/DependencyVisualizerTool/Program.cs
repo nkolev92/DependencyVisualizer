@@ -33,20 +33,28 @@ namespace DependencyVisualizerTool
                 description: "Output folder path used to store generated graph file(s). By default, it's the project folder.");
             outputOption.AddAlias("-o");
 
+            var checkVulnerabilityOption = new Option<bool?>(
+                name: "--visualize-vulnerabilities",
+                description: "Whether to visualize the vulnerabilities for your package graph");
+
             var rootCommand = new RootCommand("Dependency visualizer app");
             rootCommand.AddArgument(fileArgument);
             rootCommand.AddOption(outputOption);
+            rootCommand.AddOption(checkVulnerabilityOption);
 
-            rootCommand.SetHandler((fileArgument, outputOption) =>
+            rootCommand.SetHandler(async (fileArgument, outputOption, checkVulnerabilityOption) =>
             {
-                GenerateGraph(fileArgument, outputOption);
+#if DEBUG
+                System.Diagnostics.Debugger.Launch();
+#endif
+                await GenerateGraph(fileArgument, outputOption, checkVulnerabilityOption);
             },
-            fileArgument, outputOption);
+            fileArgument, outputOption, checkVulnerabilityOption);
 
             return rootCommand.InvokeAsync(args).Result;
         }
 
-        private static void GenerateGraph(FileInfo projectFile, string? outputFolder)
+        private static async Task<int> GenerateGraph(FileInfo projectFile, string? outputFolder, bool? checkVulnerabilities)
         {
             MSBuildLocator.RegisterDefaults();
             string projectExtensionsPath = GetMSBuildProjectExtensionsPath(projectFile.FullName);
@@ -64,10 +72,10 @@ namespace DependencyVisualizerTool
 
             if (assetFile == null || dgspecFile == null || outputFolder == null)
             {
-                return;
+                return 1;
             }
 
-            Dictionary<string, PackageDependencyGraph> dictGraph = PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFile(assetFile, dgspecFile);
+            Dictionary<string, PackageDependencyGraph> dictGraph = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetFile, dgspecFile, checkVulnerabilities == true);
             foreach (var keyValuePair in dictGraph)
             {
                 string projectName = Path.GetFileNameWithoutExtension(projectFile.Name);
@@ -79,16 +87,15 @@ namespace DependencyVisualizerTool
                 }
                 catch (Exception e)
                 {
-                    string errorMessage = "Exception is thrown when generating the DGML file.";
-                    AppLogger.Logger.LogError(errorMessage);
-
-                    //AppLogger.Logger.LogDebug(e.Message);
-                    //AppLogger.Logger.LogDebug(e.StackTrace);
-                    return;
+                    string errorMessage = "Exception is thrown when generating the DGML file. {0}";
+                    AppLogger.Logger.LogError(errorMessage, e);
+                    return 1;
                 }
             }
             string infoMessage = $"Successfully created dependency graph file(s) under {outputFolder}";
             AppLogger.Logger.LogInformation(infoMessage);
+            Console.WriteLine(infoMessage);
+            return 0;
         }
         private static LockFile GetAssetsFilePath(string projectExtensionsPath)
         {

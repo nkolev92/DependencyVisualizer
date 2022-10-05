@@ -13,7 +13,7 @@ namespace Logging
         private static ILogger CreateLogger()
         {
             var loggerFactory = LoggerFactory.Create(loggingBuilder => loggingBuilder
-            .SetMinimumLevel(LogLevel.Trace)
+            .SetMinimumLevel(LogLevel.Debug)
             .AddConsole());
             var logger = loggerFactory.CreateLogger<AppLogger>();
             return logger;
