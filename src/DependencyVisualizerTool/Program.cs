@@ -88,7 +88,7 @@ namespace DependencyVisualizerTool
                 string dgmlFileName = Path.Combine(outputFolder, $"{projectName}_{tfm}.dgml");
                 try
                 {
-                    DGMLDependencyVisualizerTool.TransGraphToDGMLFile(keyValuePair.Value, dgmlFileName);
+                    DGMLDependencyVisualizerTool.TransGraphToDGMLFile(keyValuePair.Value, dgmlFileName, projectsOnly != true);
                 }
                 catch (Exception e)
                 {

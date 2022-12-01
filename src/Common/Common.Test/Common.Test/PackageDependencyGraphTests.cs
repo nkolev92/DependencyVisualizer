@@ -8,12 +8,12 @@ namespace Common.Test
     public class GraphBuilderTests
     {
         [Fact]
-        public void FromAssetsFile_WithLargeGraph_ParsesGraphCorrectly()
+        public async Task FromAssetsFile_WithLargeGraph_ParsesGraphCorrectly()
         {
             var assetsFileText = TestHelpers.GetResource("Common.Test.compiler.resources.nuget.common.assets.json", GetType());
 
             var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
-            var graphs = PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFile(assetsFile);
+            var graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile);
             graphs.Should().HaveCount(2);
 
             var graph = graphs.First().Value;
@@ -291,12 +291,12 @@ namespace Common.Test
         // (net472) TestProject -> A 1.0.0
         // (net48) TestProject -> B 2.0.0
         [Fact]
-        public void GenerateAllDependencyGraphsFromAssetsFile_WithMultipleFrameworksAndDifferentPackageReferences_ParsesOnlyTheFirstGraphCorrectly()
+        public async Task GenerateAllDependencyGraphsFromAssetsFile_WithMultipleFrameworksAndDifferentPackageReferences_ParsesOnlyTheFirstGraphCorrectly()
         {
             var assetsFileText = TestHelpers.GetResource("Common.Test.compiler.resources.multitargeted.assets.json", GetType());
 
             var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
-            Dictionary<string, PackageDependencyGraph> graphs = PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFile(assetsFile);
+            Dictionary<string, PackageDependencyGraph> graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile);
 
             var net472Graph = graphs["net472"];
             net472Graph.Node.Identity.Id.Should().Be("TestProject");
@@ -321,7 +321,7 @@ namespace Common.Test
 
         // Parent -> Nephew (project file name is Child.csproj) 13.0.1 => NuGet.Frameworks 6.3.0
         [Fact]
-        public void FromAssetsFile_WithProjectReferenceWithAPackageId_ParsesGraphCorrectly()
+        public async Task FromAssetsFile_WithProjectReferenceWithAPackageId_ParsesGraphCorrectly()
         {
             using var tempFile = new TempFile();
             var assetsFileText = TestHelpers.GetResource("Common.Test.compiler.resources.projectwithpackageid.assets.json", GetType());
@@ -330,7 +330,7 @@ namespace Common.Test
             var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
             var dgSpec = DependencyGraphSpec.Load(tempFile.FilePath);
 
-            var graphs = PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFile(assetsFile, dgSpec);
+            var graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, dgSpec, false, false);
             graphs.Should().HaveCount(1);
             var graph = graphs.Single().Value;
 
@@ -357,7 +357,7 @@ namespace Common.Test
             var assetsFileText = TestHelpers.GetResource(resourceName, GetType());
 
             var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
-            var graphs = PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFile(assetsFile);
+            var graphs = PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile).Result;
             graphs.Should().HaveCount(1);
             var graph = graphs.Single().Value;
             return graph;

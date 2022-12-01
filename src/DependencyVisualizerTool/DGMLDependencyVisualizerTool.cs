@@ -17,13 +17,13 @@ namespace DependencyVisualizerTool
     {
         private const string DGMLxmlns = "http://schemas.microsoft.com/vs/2009/dgml";
 
-        public static void TransGraphToDGMLFile(PackageDependencyGraph graph, string saveFilePath)
+        public static void TransGraphToDGMLFile(PackageDependencyGraph graph, string saveFilePath, bool populateCosts)
         {
-            XDocument document = TransGraphToDGMLXDocument(graph);
+            XDocument document = TransGraphToDGMLXDocument(graph, populateCosts);
             document.Save(saveFilePath);
         }
 
-        public static XDocument TransGraphToDGMLXDocument(PackageDependencyGraph graph)
+        public static XDocument TransGraphToDGMLXDocument(PackageDependencyGraph graph, bool populateCosts = true)
         {
             // Visited nodes
             Dictionary<string, DGMLNode> nodes = new Dictionary<string, DGMLNode>();
@@ -49,7 +49,7 @@ namespace DependencyVisualizerTool
                     DGMLLink currentLink = new DGMLLink(
                         source: current.Identity.ToString(),
                         target: child.Item1.Identity.ToString(),
-                        label: child.Item2.ToString());
+                        label: populateCosts ? child.Item2.ToString() : string.Empty);
                     links.Add(currentLink);
                     if (!nodes.TryGetValue(child.Item1.Identity.ToString(), out _))
                     {

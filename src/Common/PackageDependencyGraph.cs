@@ -1,14 +1,10 @@
-﻿using Logging;
-using Microsoft.Extensions.Logging;
-using NuGet.Commands;
-using NuGet.Configuration;
+﻿using NuGet.Configuration;
 using NuGet.Packaging.Core;
 using NuGet.ProjectModel;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 using System.Diagnostics;
-using System.Threading;
 
 namespace Common
 {
@@ -17,12 +13,6 @@ namespace Common
     {
         public PackageDependencyGraph(Node<DependencyNodeIdentity, VersionRange> node) : base(node)
         {
-        }
-
-        public static Dictionary<string, PackageDependencyGraph> GenerateAllDependencyGraphsFromAssetsFile(LockFile assetFile, DependencyGraphSpec dgspecFile, bool checkSourcesForVulnerabilities = false)
-        {
-            return GenerateAllDependencyGraphsFromAssetsFileAsync(assetFile, dgspecFile, checkSourcesForVulnerabilities).Result;
-
         }
 
         /// <summary>
@@ -62,11 +52,6 @@ namespace Common
             }
 
             return aliasToDependencyGraph;
-        }
-
-        public static Dictionary<string, PackageDependencyGraph> GenerateAllDependencyGraphsFromAssetsFile(LockFile assetsFile, bool checkSourcesForVulnerabilities = false)
-        {
-            return GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, checkSourcesForVulnerabilities).Result;
         }
 
         /// <summary>
@@ -110,21 +95,9 @@ namespace Common
 
             Dictionary<string, PackageDependencyNode> packageIdToNode = GenerateNodesForAllPackagesInGraph(framework, projectsOnly);
 
-
             if (checkVulnerabilities)
             {
-                var sourceRepositories = GetHTTPSourceRepositories(packageSpec);
-                var metadataResource = await GetResourcesAsync(sourceRepositories);
-                Dictionary<PackageIdentity, bool> vulnerabilitiesCache = new();
-
-                foreach (var package in packageIdToNode)
-                {
-                    var packageIdentity = (PackageIdentity)package.Value.Identity;
-                    if (await IsVulnerableAsync(packageIdentity, metadataResource, vulnerabilitiesCache))
-                    {
-                        package.Value.Identity.Vulnerable = true;
-                    }
-                }
+                await GenerateVulnerabilitiesAsync(packageSpec, packageIdToNode);
             }
 
             packageIdToNode.Add(graph.Node.Identity.Id, (PackageDependencyNode)graph.Node);
@@ -132,7 +105,7 @@ namespace Common
             // Populate Node to Node edges
             foreach (var package in framework.Libraries)
             {
-                if(package.Type != "project" && projectsOnly)
+                if (package.Type != "project" && projectsOnly)
                 {
                     continue;
                 }
@@ -146,7 +119,7 @@ namespace Common
                     }
                     else if (!projectsOnly)
                     {
-                        throw new Exception("Problem");
+                        throw new Exception($"Expected to find a node for {dependency.Id} but was unable to.");
                     }
                 }
             }
@@ -171,7 +144,7 @@ namespace Common
                 {
                     inferedProjectName = Path.GetFileNameWithoutExtension(projectReference.ProjectPath);
                 }
-                PackageDependencyNode node = packageIdToNode[inferedProjectName]; // TODO - https://github.com/nkolev92/DependencyVisualizer/issues/5
+                PackageDependencyNode node = packageIdToNode[inferedProjectName];
                 VersionRange versionRange = new(node.Identity.Version);
                 graph.Node.ChildNodes.Add((node, versionRange));
                 node.ParentNodes.Add((graph.Node, versionRange));
@@ -200,74 +173,80 @@ namespace Common
             }
         }
 
-        private static async Task<bool> IsVulnerableAsync(PackageIdentity packageIdentity, List<PackageMetadataResource> metadataResources, Dictionary<PackageIdentity, bool> vulnerabilitiesCache)
+        private static async Task GenerateVulnerabilitiesAsync(PackageSpec packageSpec, Dictionary<string, PackageDependencyNode> packageIdToNode)
         {
-            if (!metadataResources.Any())
-            {
-                return false;
-            }
+            var sourceRepositories = GetHTTPSourceRepositories(packageSpec);
+            var metadataResource = await GetResourcesAsync(sourceRepositories);
+            Dictionary<PackageIdentity, bool> vulnerabilitiesCache = new();
 
-            if (vulnerabilitiesCache.TryGetValue(packageIdentity, out bool result))
+            foreach (var package in packageIdToNode)
             {
-                return result;
-            }
-
-            var vulnerable = false;
-            await Parallel.ForEachAsync(metadataResources, async (resource, cancellationToken) =>
-            {
-                var metadata = await resource.GetMetadataAsync(packageIdentity, new SourceCacheContext(), NuGet.Common.NullLogger.Instance, cancellationToken); // TODO - https://github.com/nkolev92/DependencyVisualizer/issues/5
-                if (metadata != null)
+                var packageIdentity = (PackageIdentity)package.Value.Identity;
+                if (await IsVulnerableAsync(packageIdentity, metadataResource, vulnerabilitiesCache))
                 {
-                    vulnerable |= metadata.Vulnerabilities?.Any() == true;
-                }
-            });
-
-            vulnerabilitiesCache.Add(packageIdentity, vulnerable);
-            return vulnerable;
-        }
-
-        private static async Task<List<PackageMetadataResource>> GetResourcesAsync(Dictionary<PackageSource, SourceRepository> sourceRepositories)
-        {
-            var resources = new List<PackageMetadataResource>() { };
-            foreach (var repository in sourceRepositories)
-            {
-                var resource = await repository.Value.GetResourceAsync<PackageMetadataResource>();
-                resources.Add(resource);
-            }
-            return resources;
-        }
-
-        private static Dictionary<PackageSource, SourceRepository> GetHTTPSourceRepositories(PackageSpec projectPackageSpec)
-        {
-            using var settingsLoadContext = new SettingsLoadingContext();
-
-            Dictionary<PackageSource, SourceRepository> sourceRepositoryCache = new();
-
-            var settings = Settings.LoadImmutableSettingsGivenConfigPaths(projectPackageSpec.RestoreMetadata.ConfigFilePaths, settingsLoadContext);
-            var sources = projectPackageSpec.RestoreMetadata.Sources;
-
-            IEnumerable<Lazy<INuGetResourceProvider>> providers = Repository.Provider.GetCoreV3();
-
-            foreach (PackageSource source in sources)
-            {
-                if (source.IsHttp)
-                {
-                    SourceRepository sourceRepository = Repository.CreateSource(providers, source, FeedType.Undefined);
-                    sourceRepositoryCache[source] = sourceRepository;
+                    package.Value.Identity.Vulnerable = true;
                 }
             }
 
-            return sourceRepositoryCache;
-        }
-
-        internal static LockFile GetAssetsFile(string fileName)
-        {
-            if (string.IsNullOrWhiteSpace(fileName))
+            static async Task<List<PackageMetadataResource>> GetResourcesAsync(Dictionary<PackageSource, SourceRepository> sourceRepositories)
             {
-                throw new ArgumentNullException(nameof(fileName));
+                var resources = new List<PackageMetadataResource>() { };
+                foreach (var repository in sourceRepositories)
+                {
+                    var resource = await repository.Value.GetResourceAsync<PackageMetadataResource>();
+                    resources.Add(resource);
+                }
+                return resources;
             }
 
-            return new LockFileFormat().Read(fileName); // TODO - https://github.com/nkolev92/DependencyVisualizer/issues/5
+            static Dictionary<PackageSource, SourceRepository> GetHTTPSourceRepositories(PackageSpec projectPackageSpec)
+            {
+                using var settingsLoadContext = new SettingsLoadingContext();
+
+                Dictionary<PackageSource, SourceRepository> sourceRepositoryCache = new();
+
+                var settings = Settings.LoadImmutableSettingsGivenConfigPaths(projectPackageSpec.RestoreMetadata.ConfigFilePaths, settingsLoadContext);
+                var sources = projectPackageSpec.RestoreMetadata.Sources;
+
+                IEnumerable<Lazy<INuGetResourceProvider>> providers = Repository.Provider.GetCoreV3();
+
+                foreach (PackageSource source in sources)
+                {
+                    if (source.IsHttp)
+                    {
+                        SourceRepository sourceRepository = Repository.CreateSource(providers, source, FeedType.Undefined);
+                        sourceRepositoryCache[source] = sourceRepository;
+                    }
+                }
+
+                return sourceRepositoryCache;
+            }
+
+            static async Task<bool> IsVulnerableAsync(PackageIdentity packageIdentity, List<PackageMetadataResource> metadataResources, Dictionary<PackageIdentity, bool> vulnerabilitiesCache)
+            {
+                if (!metadataResources.Any())
+                {
+                    return false;
+                }
+
+                if (vulnerabilitiesCache.TryGetValue(packageIdentity, out bool result))
+                {
+                    return result;
+                }
+
+                var vulnerable = false;
+                await Parallel.ForEachAsync(metadataResources, async (resource, cancellationToken) =>
+                {
+                    var metadata = await resource.GetMetadataAsync(packageIdentity, new SourceCacheContext(), NuGet.Common.NullLogger.Instance, cancellationToken); // TODO - https://github.com/nkolev92/DependencyVisualizer/issues/5
+                    if (metadata != null)
+                    {
+                        vulnerable |= metadata.Vulnerabilities?.Any() == true;
+                    }
+                });
+
+                vulnerabilitiesCache.Add(packageIdentity, vulnerable);
+                return vulnerable;
+            }
         }
     }
 }

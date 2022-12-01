@@ -57,12 +57,12 @@ namespace DependencyVisualizerTool.Test
         }
 
         [Fact]
-        public void TransGraphToDGMLXDocument_multitargeted_CreateDGMLCorrectly()
+        public async Task TransGraphToDGMLXDocument_multitargeted_CreateDGMLCorrectly()
         {
             var assetsFileText = TestHelpers.GetResource("DependencyVisualizerTool.Test.compiler.resources.multitargeted.assets.json", GetType());
 
             var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
-            var graphs = PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFile(assetsFile);
+            var graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile);
             graphs.Should().HaveCount(2);
             var graph = graphs.First().Value;
 
@@ -74,12 +74,12 @@ namespace DependencyVisualizerTool.Test
         }
 
         [Fact]
-        public void TransGraphToDGMLXDocument_nugetcommon_CreateDGMLCorrectly()
+        public async Task TransGraphToDGMLXDocument_nugetcommon_CreateDGMLCorrectly()
         {
             var assetsFileText = TestHelpers.GetResource("DependencyVisualizerTool.Test.compiler.resources.nuget.common.assets.json", GetType());
 
             var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
-            var graphs = PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFile(assetsFile);
+            var graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile);
             graphs.Should().HaveCount(2);
             var graph = graphs.First().Value;
 
@@ -149,7 +149,7 @@ namespace DependencyVisualizerTool.Test
             var assetsFileText = TestHelpers.GetResource(resourceName, GetType());
 
             var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
-            var graphs = PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFile(assetsFile);
+            var graphs = PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile).Result;
             graphs.Should().HaveCount(1);
             var graph = graphs.Single().Value;
             return graph;
