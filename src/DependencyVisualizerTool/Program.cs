@@ -37,24 +37,29 @@ namespace DependencyVisualizerTool
                 name: "--visualize-vulnerabilities",
                 description: "Whether to visualize the vulnerabilities for your package graph");
 
+            var projectsOnlyOption = new Option<bool?>(
+                name: "--projects-only",
+                description: "When used, generates a projects only graph.");
+
             var rootCommand = new RootCommand("Dependency visualizer app");
             rootCommand.AddArgument(fileArgument);
             rootCommand.AddOption(outputOption);
             rootCommand.AddOption(checkVulnerabilityOption);
+            rootCommand.AddOption(projectsOnlyOption);
 
-            rootCommand.SetHandler(async (fileArgument, outputOption, checkVulnerabilityOption) =>
+            rootCommand.SetHandler(async (fileArgument, outputOption, checkVulnerabilityOption, projectsOnly) =>
             {
 #if DEBUG
                 System.Diagnostics.Debugger.Launch();
 #endif
-                await GenerateGraph(fileArgument, outputOption, checkVulnerabilityOption);
+                await GenerateGraph(fileArgument, outputOption, checkVulnerabilityOption, projectsOnly);
             },
-            fileArgument, outputOption, checkVulnerabilityOption);
+            fileArgument, outputOption, checkVulnerabilityOption, projectsOnlyOption);
 
             return rootCommand.InvokeAsync(args).Result;
         }
 
-        private static async Task<int> GenerateGraph(FileInfo projectFile, string? outputFolder, bool? checkVulnerabilities)
+        private static async Task<int> GenerateGraph(FileInfo projectFile, string? outputFolder, bool? checkVulnerabilities, bool? projectsOnly)
         {
             MSBuildLocator.RegisterDefaults();
             string projectExtensionsPath = GetMSBuildProjectExtensionsPath(projectFile.FullName);
@@ -75,7 +80,7 @@ namespace DependencyVisualizerTool
                 return 1;
             }
 
-            Dictionary<string, PackageDependencyGraph> dictGraph = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetFile, dgspecFile, checkVulnerabilities == true);
+            Dictionary<string, PackageDependencyGraph> dictGraph = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetFile, dgspecFile, checkVulnerabilities == true, projectsOnly == true);
             foreach (var keyValuePair in dictGraph)
             {
                 string projectName = Path.GetFileNameWithoutExtension(projectFile.Name);

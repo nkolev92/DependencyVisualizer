@@ -32,7 +32,7 @@ namespace Common
         /// <returns></returns>
         /// <exception cref="InvalidOperationException">If the assets file is not valid</exception>
         /// <exception cref="ArgumentNullException">If the assets file is null</exception>
-        public static async Task<Dictionary<string, PackageDependencyGraph>> GenerateAllDependencyGraphsFromAssetsFileAsync(LockFile assetsFile, DependencyGraphSpec dependencyGraphSpec, bool checkSourcesForVulnerabilities = false)
+        public static async Task<Dictionary<string, PackageDependencyGraph>> GenerateAllDependencyGraphsFromAssetsFileAsync(LockFile assetsFile, DependencyGraphSpec dependencyGraphSpec, bool checkSourcesForVulnerabilities = false, bool projectsOnly = false)
         {
             ArgumentNullException.ThrowIfNull(assetsFile);
             DependencyNodeIdentity projectIdentity = new(assetsFile.PackageSpec.Name, assetsFile.PackageSpec.Version, DependencyType.Project);
@@ -56,7 +56,7 @@ namespace Common
 
             foreach (var framework in frameworks)
             {
-                var dependenyGraph = await GenerateGraphForAGivenFramework(projectIdentity, framework, assetsFile.PackageSpec, projectPathToProjectNameMap, checkSourcesForVulnerabilities);
+                var dependenyGraph = await GenerateGraphForAGivenFramework(projectIdentity, framework, assetsFile.PackageSpec, projectPathToProjectNameMap, checkSourcesForVulnerabilities, projectsOnly);
                 var alias = assetsFile.PackageSpec.GetTargetFramework(framework.TargetFramework);
                 aliasToDependencyGraph.Add(alias.TargetAlias, dependenyGraph);
             }
@@ -92,7 +92,7 @@ namespace Common
 
             foreach (var framework in frameworks)
             {
-                var dependenyGraph = await GenerateGraphForAGivenFramework(projectIdentity, framework, assetsFile.PackageSpec, new(), checkSourcesForVulnerabilities);
+                var dependenyGraph = await GenerateGraphForAGivenFramework(projectIdentity, framework, assetsFile.PackageSpec, new(), checkSourcesForVulnerabilities, projectsOnly: false);
                 var alias = assetsFile.PackageSpec.GetTargetFramework(framework.TargetFramework);
                 aliasToDependencyGraph.Add(alias.TargetAlias, dependenyGraph);
             }
@@ -100,7 +100,7 @@ namespace Common
             return aliasToDependencyGraph;
         }
 
-        private static async Task<PackageDependencyGraph> GenerateGraphForAGivenFramework(DependencyNodeIdentity projectIdentity, LockFileTarget framework, PackageSpec packageSpec, Dictionary<string, string> projectPathToProjectNameMap, bool checkVulnerabilities)
+        private static async Task<PackageDependencyGraph> GenerateGraphForAGivenFramework(DependencyNodeIdentity projectIdentity, LockFileTarget framework, PackageSpec packageSpec, Dictionary<string, string> projectPathToProjectNameMap, bool checkVulnerabilities, bool projectsOnly)
         {
             ArgumentNullException.ThrowIfNull(projectIdentity);
             ArgumentNullException.ThrowIfNull(framework);
@@ -108,7 +108,7 @@ namespace Common
             ArgumentNullException.ThrowIfNull(projectPathToProjectNameMap);
             PackageDependencyGraph graph = new(new PackageDependencyNode(projectIdentity));
 
-            Dictionary<string, PackageDependencyNode> packageIdToNode = GenerateNodesForAllPackagesInGraph(framework);
+            Dictionary<string, PackageDependencyNode> packageIdToNode = GenerateNodesForAllPackagesInGraph(framework, projectsOnly);
 
 
             if (checkVulnerabilities)
@@ -132,23 +132,35 @@ namespace Common
             // Populate Node to Node edges
             foreach (var package in framework.Libraries)
             {
+                if(package.Type != "project" && projectsOnly)
+                {
+                    continue;
+                }
                 var currentPackageNode = packageIdToNode[package.Name];
                 foreach (PackageDependency dependency in package.Dependencies)
                 {
-                    PackageDependencyNode packageDependencyNode = packageIdToNode[dependency.Id];
-
-                    currentPackageNode.ChildNodes.Add((packageDependencyNode, dependency.VersionRange));
-                    packageDependencyNode.ParentNodes.Add((currentPackageNode, dependency.VersionRange));
+                    if (packageIdToNode.TryGetValue(dependency.Id, out PackageDependencyNode? packageDependencyNode))
+                    {
+                        currentPackageNode.ChildNodes.Add((packageDependencyNode, dependency.VersionRange));
+                        packageDependencyNode.ParentNodes.Add((currentPackageNode, dependency.VersionRange));
+                    }
+                    else if (!projectsOnly)
+                    {
+                        throw new Exception("Problem");
+                    }
                 }
             }
 
             // Populate edge cost for direct PackageReferences
-            TargetFrameworkInformation targetFrameworkInformation = packageSpec.GetTargetFramework(framework.TargetFramework);
-            foreach (var packageDependency in targetFrameworkInformation.Dependencies)
+            if (!projectsOnly)
             {
-                PackageDependencyNode node = packageIdToNode[packageDependency.Name];
-                graph.Node.ChildNodes.Add((node, packageDependency.LibraryRange.VersionRange));
-                node.ParentNodes.Add((graph.Node, packageDependency.LibraryRange.VersionRange));
+                TargetFrameworkInformation targetFrameworkInformation = packageSpec.GetTargetFramework(framework.TargetFramework);
+                foreach (var packageDependency in targetFrameworkInformation.Dependencies)
+                {
+                    PackageDependencyNode node = packageIdToNode[packageDependency.Name];
+                    graph.Node.ChildNodes.Add((node, packageDependency.LibraryRange.VersionRange));
+                    node.ParentNodes.Add((graph.Node, packageDependency.LibraryRange.VersionRange));
+                }
             }
 
             // Populate edge cost for direct ProjectReferences
@@ -167,7 +179,7 @@ namespace Common
 
             return graph;
 
-            static Dictionary<string, PackageDependencyNode> GenerateNodesForAllPackagesInGraph(LockFileTarget framework)
+            static Dictionary<string, PackageDependencyNode> GenerateNodesForAllPackagesInGraph(LockFileTarget framework, bool projectsOnly)
             {
                 var seenPackages = new Dictionary<string, PackageDependencyNode>(StringComparer.OrdinalIgnoreCase);
 
@@ -176,6 +188,10 @@ namespace Common
                     DependencyType dependencyType = Enum.TryParse(typeof(DependencyType), package.Type, ignoreCase: true, out object? result) ?
                         result != null ? (DependencyType)result : DependencyType.Package
                         : DependencyType.Package;
+                    if (dependencyType == DependencyType.Package && projectsOnly)
+                    {
+                        continue;
+                    }
                     PackageDependencyNode currentPackageNode = new(new DependencyNodeIdentity(package.Name, package.Version, dependencyType));
                     seenPackages.Add(package.Name, currentPackageNode);
                 }
