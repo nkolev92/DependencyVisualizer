@@ -13,7 +13,7 @@ namespace Common.Test
             var assetsFileText = TestHelpers.GetResource("Common.Test.compiler.resources.nuget.common.assets.json", GetType());
 
             var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
-            var graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile);
+            var graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, new GraphOptions(checkVulnerabilities: false, generateProjectsOnly: false));
             graphs.Should().HaveCount(2);
 
             var graph = graphs.First().Value;
@@ -296,7 +296,7 @@ namespace Common.Test
             var assetsFileText = TestHelpers.GetResource("Common.Test.compiler.resources.multitargeted.assets.json", GetType());
 
             var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
-            Dictionary<string, PackageDependencyGraph> graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile);
+            Dictionary<string, PackageDependencyGraph> graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, new GraphOptions(checkVulnerabilities: false, generateProjectsOnly: false));
 
             var net472Graph = graphs["net472"];
             net472Graph.Node.Identity.Id.Should().Be("TestProject");
@@ -330,7 +330,7 @@ namespace Common.Test
             var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
             var dgSpec = DependencyGraphSpec.Load(tempFile.FilePath);
 
-            var graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, dgSpec, false, false);
+            var graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, dgSpec, new GraphOptions(checkVulnerabilities: false, generateProjectsOnly: false));
             graphs.Should().HaveCount(1);
             var graph = graphs.Single().Value;
 
@@ -357,7 +357,7 @@ namespace Common.Test
             var assetsFileText = TestHelpers.GetResource(resourceName, GetType());
 
             var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
-            var graphs = PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile).Result;
+            var graphs = PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, new GraphOptions(checkVulnerabilities: false, generateProjectsOnly: false)).Result;
             graphs.Should().HaveCount(1);
             var graph = graphs.Single().Value;
             return graph;

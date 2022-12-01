@@ -9,9 +9,9 @@ namespace DependencyVisualizerTool.Test
     public class PackageDependencyVisualizerToolTests
     {
         [Fact]
-        public void TransGraphToDGMLXDocument_diamonddependency_CreateDGMLCorrectly()
+        public async Task TransGraphToDGMLXDocument_diamonddependency_CreateDGMLCorrectly()
         {
-            var graph = GetOnlyDependencyGraph("DependencyVisualizerTool.Test.compiler.resources.diamonddependency.assets.json");
+            var graph = await GetOnlyDependencyGraphAsync("DependencyVisualizerTool.Test.compiler.resources.diamonddependency.assets.json");
 
             string actualDGML = RemoveWhitespace(DGMLDependencyVisualizerTool.TransGraphToDGMLXDocument(graph).ToString());
 
@@ -21,9 +21,9 @@ namespace DependencyVisualizerTool.Test
         }
 
         [Fact]
-        public void TransGraphToDGMLXDocument_diamonddependencywithouttoplevel_CreateDGMLCorrectly()
+        public async Task TransGraphToDGMLXDocument_diamonddependencywithouttoplevel_CreateDGMLCorrectly()
         {
-            var graph = GetOnlyDependencyGraph("DependencyVisualizerTool.Test.compiler.resources.diamonddependencywithtoplevel.assets.json");
+            var graph = await GetOnlyDependencyGraphAsync("DependencyVisualizerTool.Test.compiler.resources.diamonddependencywithtoplevel.assets.json");
 
             string actualDGML = RemoveWhitespace(DGMLDependencyVisualizerTool.TransGraphToDGMLXDocument(graph).ToString());
 
@@ -33,9 +33,9 @@ namespace DependencyVisualizerTool.Test
         }
 
         [Fact]
-        public void TransGraphToDGMLXDocument_missingpackageversion_CreateDGMLCorrectly()
+        public async Task TransGraphToDGMLXDocument_missingpackageversion_CreateDGMLCorrectly()
         {
-            var graph = GetOnlyDependencyGraph("DependencyVisualizerTool.Test.compiler.resources.missingpackageversion.assets.json");
+            var graph = await GetOnlyDependencyGraphAsync("DependencyVisualizerTool.Test.compiler.resources.missingpackageversion.assets.json");
 
             string actualDGML = RemoveWhitespace(DGMLDependencyVisualizerTool.TransGraphToDGMLXDocument(graph).ToString());
 
@@ -45,9 +45,9 @@ namespace DependencyVisualizerTool.Test
         }
 
         [Fact]
-        public void TransGraphToDGMLXDocument_multipleversions_CreateDGMLCorrectly()
+        public async Task TransGraphToDGMLXDocument_multipleversions_CreateDGMLCorrectly()
         {
-            var graph = GetOnlyDependencyGraph("DependencyVisualizerTool.Test.compiler.resources.multipleversions.assets.json");
+            var graph = await GetOnlyDependencyGraphAsync("DependencyVisualizerTool.Test.compiler.resources.multipleversions.assets.json");
 
             string actualDGML = RemoveWhitespace(DGMLDependencyVisualizerTool.TransGraphToDGMLXDocument(graph).ToString());
 
@@ -62,7 +62,7 @@ namespace DependencyVisualizerTool.Test
             var assetsFileText = TestHelpers.GetResource("DependencyVisualizerTool.Test.compiler.resources.multitargeted.assets.json", GetType());
 
             var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
-            var graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile);
+            var graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, new GraphOptions(checkVulnerabilities: false, generateProjectsOnly: false));
             graphs.Should().HaveCount(2);
             var graph = graphs.First().Value;
 
@@ -79,7 +79,7 @@ namespace DependencyVisualizerTool.Test
             var assetsFileText = TestHelpers.GetResource("DependencyVisualizerTool.Test.compiler.resources.nuget.common.assets.json", GetType());
 
             var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
-            var graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile);
+            var graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, new GraphOptions(checkVulnerabilities: false, generateProjectsOnly: false));
             graphs.Should().HaveCount(2);
             var graph = graphs.First().Value;
 
@@ -92,9 +92,9 @@ namespace DependencyVisualizerTool.Test
 
 
         [Fact]
-        public void TransGraphToDGMLXDocument_singlepackagereference_CreateDGMLCorrectly()
+        public async Task TransGraphToDGMLXDocument_singlepackagereference_CreateDGMLCorrectly()
         {
-            var graph = GetOnlyDependencyGraph("DependencyVisualizerTool.Test.compiler.resources.singlepackagereference.assets.json");
+            var graph = await GetOnlyDependencyGraphAsync("DependencyVisualizerTool.Test.compiler.resources.singlepackagereference.assets.json");
 
             string actualDGML = RemoveWhitespace(DGMLDependencyVisualizerTool.TransGraphToDGMLXDocument(graph).ToString());
 
@@ -104,9 +104,9 @@ namespace DependencyVisualizerTool.Test
         }
 
         [Fact]
-        public void TransGraphToDGMLXDocument_singleprojectreference_CreateDGMLCorrectly()
+        public async Task TransGraphToDGMLXDocument_singleprojectreference_CreateDGMLCorrectly()
         {
-            var graph = GetOnlyDependencyGraph("DependencyVisualizerTool.Test.compiler.resources.singleprojectreference.assets.json");
+            var graph = await GetOnlyDependencyGraphAsync("DependencyVisualizerTool.Test.compiler.resources.singleprojectreference.assets.json");
 
             string actualDGML = RemoveWhitespace(DGMLDependencyVisualizerTool.TransGraphToDGMLXDocument(graph).ToString());
 
@@ -116,9 +116,9 @@ namespace DependencyVisualizerTool.Test
         }
 
         [Fact]
-        public void TransGraphToDGMLXDocument_transitivepackagereference_CreateDGMLCorrectly()
+        public async Task TransGraphToDGMLXDocument_transitivepackagereference_CreateDGMLCorrectly()
         {
-            var graph = GetOnlyDependencyGraph("DependencyVisualizerTool.Test.compiler.resources.transitivepackagereference.assets.json");
+            var graph = await GetOnlyDependencyGraphAsync("DependencyVisualizerTool.Test.compiler.resources.transitivepackagereference.assets.json");
 
             string actualDGML = RemoveWhitespace(DGMLDependencyVisualizerTool.TransGraphToDGMLXDocument(graph).ToString());
 
@@ -128,9 +128,9 @@ namespace DependencyVisualizerTool.Test
         }
 
         [Fact]
-        public void TransGraphToDGMLXDocument_transitiveprojectreference_CreateDGMLCorrectly()
+        public async Task TransGraphToDGMLXDocument_transitiveprojectreference_CreateDGMLCorrectly()
         {
-            var graph = GetOnlyDependencyGraph("DependencyVisualizerTool.Test.compiler.resources.transitiveprojectreference.assets.json");
+            var graph = await GetOnlyDependencyGraphAsync("DependencyVisualizerTool.Test.compiler.resources.transitiveprojectreference.assets.json");
 
             string actualDGML = RemoveWhitespace(DGMLDependencyVisualizerTool.TransGraphToDGMLXDocument(graph).ToString());
 
@@ -144,12 +144,12 @@ namespace DependencyVisualizerTool.Test
             return Regex.Replace(s, @"\s+", string.Empty);
         }
 
-        private PackageDependencyGraph GetOnlyDependencyGraph(string resourceName)
+        private async Task<PackageDependencyGraph> GetOnlyDependencyGraphAsync(string resourceName)
         {
             var assetsFileText = TestHelpers.GetResource(resourceName, GetType());
 
             var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
-            var graphs = PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile).Result;
+            var graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, new GraphOptions(checkVulnerabilities: false, generateProjectsOnly: false));
             graphs.Should().HaveCount(1);
             var graph = graphs.Single().Value;
             return graph;

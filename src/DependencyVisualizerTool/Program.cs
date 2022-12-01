@@ -80,7 +80,7 @@ namespace DependencyVisualizerTool
                 return 1;
             }
 
-            Dictionary<string, PackageDependencyGraph> dictGraph = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetFile, dgspecFile, checkVulnerabilities == true, projectsOnly == true);
+            Dictionary<string, PackageDependencyGraph> dictGraph = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetFile, dgspecFile, new GraphOptions(checkVulnerabilities == true, projectsOnly == true));
             foreach (var keyValuePair in dictGraph)
             {
                 string projectName = Path.GetFileNameWithoutExtension(projectFile.Name);
