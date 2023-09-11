@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NuGet.Common;
-using NuGet.Protocol.Core.Types;
-
-namespace Common.Test
+﻿namespace Common.Test
 {
     /// <summary>
     /// This class is used to create a temp file, which is deleted in Dispose().

@@ -46,9 +46,9 @@ namespace Common
 
             foreach (var framework in frameworks)
             {
-                var dependenyGraph = await GenerateGraphForAGivenFramework(projectIdentity, framework, assetsFile.PackageSpec, projectPathToProjectNameMap, graphOptions.CheckVulnerabilities, graphOptions.GenerateProjectsOnly);
-                var alias = assetsFile.PackageSpec.GetTargetFramework(framework.TargetFramework);
-                aliasToDependencyGraph.Add(alias.TargetAlias, dependenyGraph);
+                PackageDependencyGraph dependencyGraph = await GenerateGraphForAGivenFramework(projectIdentity, framework, assetsFile.PackageSpec, projectPathToProjectNameMap, graphOptions.CheckVulnerabilities, graphOptions.GenerateProjectsOnly);
+                TargetFrameworkInformation alias = assetsFile.PackageSpec.GetTargetFramework(framework.TargetFramework);
+                aliasToDependencyGraph.Add(alias.TargetAlias, dependencyGraph);
             }
 
             return aliasToDependencyGraph;
@@ -85,7 +85,13 @@ namespace Common
             return aliasToDependencyGraph;
         }
 
-        private static async Task<PackageDependencyGraph> GenerateGraphForAGivenFramework(DependencyNodeIdentity projectIdentity, LockFileTarget framework, PackageSpec packageSpec, Dictionary<string, string> projectPathToProjectNameMap, bool checkVulnerabilities, bool projectsOnly)
+        private static async Task<PackageDependencyGraph> GenerateGraphForAGivenFramework(
+            DependencyNodeIdentity projectIdentity,
+            LockFileTarget framework,
+            PackageSpec packageSpec,
+            Dictionary<string, string> projectPathToProjectNameMap,
+            bool checkVulnerabilities,
+            bool projectsOnly)
         {
             ArgumentNullException.ThrowIfNull(projectIdentity);
             ArgumentNullException.ThrowIfNull(framework);
@@ -97,7 +103,7 @@ namespace Common
 
             if (checkVulnerabilities)
             {
-                await GenerateVulnerabilitiesAsync(packageSpec, packageIdToNode);
+                await VulnerabilityHelpers.GenerateVulnerabilitiesAsync(packageSpec, packageIdToNode, CancellationToken.None);
             }
 
             packageIdToNode.Add(graph.Node.Identity.Id, (PackageDependencyNode)graph.Node);
@@ -170,82 +176,6 @@ namespace Common
                 }
 
                 return seenPackages;
-            }
-        }
-
-        private static async Task GenerateVulnerabilitiesAsync(PackageSpec packageSpec, Dictionary<string, PackageDependencyNode> packageIdToNode)
-        {
-            var sourceRepositories = GetHTTPSourceRepositories(packageSpec);
-            var metadataResource = await GetResourcesAsync(sourceRepositories);
-            Dictionary<PackageIdentity, bool> vulnerabilitiesCache = new();
-
-            foreach (var package in packageIdToNode)
-            {
-                var packageIdentity = (PackageIdentity)package.Value.Identity;
-                if (await IsVulnerableAsync(packageIdentity, metadataResource, vulnerabilitiesCache))
-                {
-                    package.Value.Identity.Vulnerable = true;
-                }
-            }
-
-            static async Task<List<PackageMetadataResource>> GetResourcesAsync(Dictionary<PackageSource, SourceRepository> sourceRepositories)
-            {
-                var resources = new List<PackageMetadataResource>() { };
-                foreach (var repository in sourceRepositories)
-                {
-                    var resource = await repository.Value.GetResourceAsync<PackageMetadataResource>();
-                    resources.Add(resource);
-                }
-                return resources;
-            }
-
-            static Dictionary<PackageSource, SourceRepository> GetHTTPSourceRepositories(PackageSpec projectPackageSpec)
-            {
-                using var settingsLoadContext = new SettingsLoadingContext();
-
-                Dictionary<PackageSource, SourceRepository> sourceRepositoryCache = new();
-
-                var settings = Settings.LoadImmutableSettingsGivenConfigPaths(projectPackageSpec.RestoreMetadata.ConfigFilePaths, settingsLoadContext);
-                var sources = projectPackageSpec.RestoreMetadata.Sources;
-
-                IEnumerable<Lazy<INuGetResourceProvider>> providers = Repository.Provider.GetCoreV3();
-
-                foreach (PackageSource source in sources)
-                {
-                    if (source.IsHttp)
-                    {
-                        SourceRepository sourceRepository = Repository.CreateSource(providers, source, FeedType.Undefined);
-                        sourceRepositoryCache[source] = sourceRepository;
-                    }
-                }
-
-                return sourceRepositoryCache;
-            }
-
-            static async Task<bool> IsVulnerableAsync(PackageIdentity packageIdentity, List<PackageMetadataResource> metadataResources, Dictionary<PackageIdentity, bool> vulnerabilitiesCache)
-            {
-                if (!metadataResources.Any())
-                {
-                    return false;
-                }
-
-                if (vulnerabilitiesCache.TryGetValue(packageIdentity, out bool result))
-                {
-                    return result;
-                }
-
-                var vulnerable = false;
-                await Parallel.ForEachAsync(metadataResources, async (resource, cancellationToken) =>
-                {
-                    var metadata = await resource.GetMetadataAsync(packageIdentity, new SourceCacheContext(), NuGet.Common.NullLogger.Instance, cancellationToken); // TODO - https://github.com/nkolev92/DependencyVisualizer/issues/5
-                    if (metadata != null)
-                    {
-                        vulnerable |= metadata.Vulnerabilities?.Any() == true;
-                    }
-                });
-
-                vulnerabilitiesCache.Add(packageIdentity, vulnerable);
-                return vulnerable;
             }
         }
     }
