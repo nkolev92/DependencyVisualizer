@@ -62,7 +62,7 @@ namespace DependencyVisualizerTool.Test
             var assetsFileText = TestHelpers.GetResource("DependencyVisualizerTool.Test.compiler.resources.multitargeted.assets.json", GetType());
 
             var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
-            var graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, new GraphOptions(checkVulnerabilities: false, generateProjectsOnly: false));
+            var graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, new GraphOptions(generateProjectsOnly: false));
             graphs.Should().HaveCount(2);
             var graph = graphs.First().Value;
 
@@ -79,7 +79,7 @@ namespace DependencyVisualizerTool.Test
             var assetsFileText = TestHelpers.GetResource("DependencyVisualizerTool.Test.compiler.resources.nuget.common.assets.json", GetType());
 
             var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
-            var graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, new GraphOptions(checkVulnerabilities: false, generateProjectsOnly: false));
+            var graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, new GraphOptions(generateProjectsOnly: false));
             graphs.Should().HaveCount(2);
             var graph = graphs.First().Value;
 
@@ -149,7 +149,7 @@ namespace DependencyVisualizerTool.Test
             var assetsFileText = TestHelpers.GetResource(resourceName, GetType());
 
             var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
-            var graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, new GraphOptions(checkVulnerabilities: false, generateProjectsOnly: false));
+            var graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, new GraphOptions(generateProjectsOnly: false));
             graphs.Should().HaveCount(1);
             var graph = graphs.Single().Value;
             return graph;
