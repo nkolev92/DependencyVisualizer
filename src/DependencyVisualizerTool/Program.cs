@@ -1,10 +1,12 @@
-﻿// See https://aka.ms/new-console-template for more information
-using System.CommandLine;
+﻿using System.CommandLine;
 using Common;
 using Logging;
 using Microsoft.Build.Locator;
 using Microsoft.Extensions.Logging;
+using NuGet.Configuration;
 using NuGet.ProjectModel;
+using NuGet.Protocol.Core.Types;
+using NuGet.Protocol;
 using static DependencyVisualizerTool.MSBuildUtility;
 
 namespace DependencyVisualizerTool
@@ -63,7 +65,7 @@ namespace DependencyVisualizerTool
         {
             MSBuildLocator.RegisterDefaults();
             string projectExtensionsPath = GetMSBuildProjectExtensionsPath(projectFile.FullName);
-            LockFile assetFile = GetAssetsFilePath(projectExtensionsPath);
+            LockFile? assetFile = GetAssetsFilePath(projectExtensionsPath);
             DependencyGraphSpec dgspecFile = GetDgspecFilePath(projectExtensionsPath, projectFile);
 
             if (outputFolder == null)
@@ -80,7 +82,16 @@ namespace DependencyVisualizerTool
                 return 1;
             }
 
-            Dictionary<string, PackageDependencyGraph> dictGraph = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetFile, dgspecFile, new GraphOptions(checkVulnerabilities == true, projectsOnly == true));
+            var decorators = CreateDecorators(assetFile.PackageSpec, checkVulnerabilities == true);
+
+            Dictionary<string, PackageDependencyGraph> dictGraph = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(
+                assetFile,
+                dgspecFile,
+                new GraphOptions(projectsOnly == true),
+                decorators,
+                CancellationToken.None);
+
+            var outputFiles = new List<string>(dictGraph.Count);
             foreach (var keyValuePair in dictGraph)
             {
                 string projectName = Path.GetFileNameWithoutExtension(projectFile.Name);
@@ -89,6 +100,7 @@ namespace DependencyVisualizerTool
                 try
                 {
                     DGMLDependencyVisualizerTool.TransGraphToDGMLFile(keyValuePair.Value, dgmlFileName, projectsOnly != true);
+                    outputFiles.Add(dgmlFileName);
                 }
                 catch (Exception e)
                 {
@@ -97,12 +109,49 @@ namespace DependencyVisualizerTool
                     return 1;
                 }
             }
-            string infoMessage = $"Successfully created dependency graph file(s) under {outputFolder}";
+            string infoMessage = $"Successfully created dependency graph file(s): {string.Join(Environment.NewLine, outputFiles)}";
             AppLogger.Logger.LogInformation(infoMessage);
             Console.WriteLine(infoMessage);
             return 0;
         }
-        private static LockFile GetAssetsFilePath(string projectExtensionsPath)
+
+        private static List<IPackageDependencyNodeDecorator> CreateDecorators(PackageSpec packageSpec, bool visualizeVulnerabilities)
+        {
+            List<IPackageDependencyNodeDecorator> decorators = new();
+
+            if (visualizeVulnerabilities)
+            {
+                var repositories = GetHTTPSourceRepositories(packageSpec);
+                decorators.Add(new VulnerabilityInfoDecorator(repositories, new SourceCacheContext()));
+            }
+
+            return decorators;
+
+            static List<SourceRepository> GetHTTPSourceRepositories(PackageSpec projectPackageSpec)
+            {
+                using var settingsLoadContext = new SettingsLoadingContext();
+
+                Dictionary<PackageSource, SourceRepository> sourceRepositoryCache = new();
+
+                var settings = Settings.LoadImmutableSettingsGivenConfigPaths(projectPackageSpec.RestoreMetadata.ConfigFilePaths, settingsLoadContext);
+                var sources = projectPackageSpec.RestoreMetadata.Sources;
+
+                IEnumerable<Lazy<INuGetResourceProvider>> providers = Repository.Provider.GetCoreV3();
+
+                foreach (PackageSource source in sources)
+                {
+                    if (source.IsHttp)
+                    {
+                        SourceRepository sourceRepository = Repository.CreateSource(providers, source, FeedType.Undefined);
+                        sourceRepositoryCache[source] = sourceRepository;
+                    }
+                }
+
+                return sourceRepositoryCache.Values.ToList();
+            }
+        }
+
+        private static LockFile? GetAssetsFilePath(string projectExtensionsPath)
         {
             ArgumentNullException.ThrowIfNull(projectExtensionsPath);
             string assetsFilePath = Path.Combine(projectExtensionsPath, LockFileFormat.AssetsFileName);
@@ -120,13 +169,13 @@ namespace DependencyVisualizerTool
             {
                 string errorMessage = $"Exception is thrown when reading the assets file at {assetsFilePath}.";
                 AppLogger.Logger.LogError(errorMessage);
-
-                //AppLogger.Logger.LogDebug(e.Message);
-                //AppLogger.Logger.LogDebug(e.StackTrace);
+                AppLogger.Logger.LogDebug(e.Message);
+                AppLogger.Logger.LogDebug(e.StackTrace);
                 return null;
             }
 
         }
+
         private static DependencyGraphSpec GetDgspecFilePath(string projectExtensionsPath, FileInfo projectFile)
         {
             ArgumentNullException.ThrowIfNull(projectExtensionsPath);
@@ -147,9 +196,8 @@ namespace DependencyVisualizerTool
             {
                 string errorMessage = $"Exception is thrown when reading the dgspec file at {dgspecFileFullPath}.";
                 AppLogger.Logger.LogError(errorMessage);
-
-                //AppLogger.Logger.LogDebug(e.Message);
-                //AppLogger.Logger.LogDebug(e.StackTrace);
+                AppLogger.Logger.LogDebug(e.Message);
+                AppLogger.Logger.LogDebug(e.StackTrace);
                 return null;
             }
         }
@@ -166,9 +214,8 @@ namespace DependencyVisualizerTool
                 {
                     var errorMessage = $"Exception is thrown when creating the outputFolder at: {outputFolder}";
                     AppLogger.Logger.LogError(errorMessage);
-
-                    //AppLogger.Logger.LogDebug(e.Message);
-                    //AppLogger.Logger.LogDebug(e.StackTrace);
+                    AppLogger.Logger.LogDebug(e.Message);
+                    AppLogger.Logger.LogDebug(e.StackTrace);
                 }
             }
         }

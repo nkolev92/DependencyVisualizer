@@ -1,10 +1,8 @@
-﻿using NuGet.Configuration;
-using NuGet.Packaging.Core;
+﻿using NuGet.Packaging.Core;
 using NuGet.ProjectModel;
-using NuGet.Protocol;
-using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 using System.Diagnostics;
+using System.Threading;
 
 namespace Common
 {
@@ -22,11 +20,19 @@ namespace Common
         /// <returns></returns>
         /// <exception cref="InvalidOperationException">If the assets file is not valid</exception>
         /// <exception cref="ArgumentNullException">If the assets file is null</exception>
-        public static async Task<Dictionary<string, PackageDependencyGraph>> GenerateAllDependencyGraphsFromAssetsFileAsync(LockFile assetsFile, DependencyGraphSpec dependencyGraphSpec, GraphOptions graphOptions)
+        public static async Task<Dictionary<string, PackageDependencyGraph>> GenerateAllDependencyGraphsFromAssetsFileAsync(
+            LockFile assetsFile,
+            DependencyGraphSpec dependencyGraphSpec,
+            GraphOptions graphOptions,
+            List<IPackageDependencyNodeDecorator> decorators,
+            CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(assetsFile);
-            DependencyNodeIdentity projectIdentity = new(assetsFile.PackageSpec.Name, assetsFile.PackageSpec.Version, DependencyType.Project);
+            ArgumentNullException.ThrowIfNull(dependencyGraphSpec);
+            ArgumentNullException.ThrowIfNull(graphOptions);
+            ArgumentNullException.ThrowIfNull(decorators);
 
+            DependencyNodeIdentity projectIdentity = new(assetsFile.PackageSpec.Name, assetsFile.PackageSpec.Version, DependencyType.Project);
             List<LockFileTarget> frameworks = assetsFile.Targets.Where(e => string.IsNullOrEmpty(e.RuntimeIdentifier)).ToList();
 
             if (frameworks.Count == 0)
@@ -46,7 +52,7 @@ namespace Common
 
             foreach (var framework in frameworks)
             {
-                PackageDependencyGraph dependencyGraph = await GenerateGraphForAGivenFramework(projectIdentity, framework, assetsFile.PackageSpec, projectPathToProjectNameMap, graphOptions.CheckVulnerabilities, graphOptions.GenerateProjectsOnly);
+                PackageDependencyGraph dependencyGraph = await GenerateGraphForAGivenFramework(projectIdentity, framework, assetsFile.PackageSpec, projectPathToProjectNameMap, graphOptions.GenerateProjectsOnly, decorators, cancellationToken);
                 TargetFrameworkInformation alias = assetsFile.PackageSpec.GetTargetFramework(framework.TargetFramework);
                 aliasToDependencyGraph.Add(alias.TargetAlias, dependencyGraph);
             }
@@ -77,7 +83,7 @@ namespace Common
 
             foreach (var framework in frameworks)
             {
-                var dependenyGraph = await GenerateGraphForAGivenFramework(projectIdentity, framework, assetsFile.PackageSpec, new(), graphOptions.CheckVulnerabilities, projectsOnly: false);
+                var dependenyGraph = await GenerateGraphForAGivenFramework(projectIdentity, framework, assetsFile.PackageSpec, new(), projectsOnly: false, new(), CancellationToken.None);
                 var alias = assetsFile.PackageSpec.GetTargetFramework(framework.TargetFramework);
                 aliasToDependencyGraph.Add(alias.TargetAlias, dependenyGraph);
             }
@@ -90,8 +96,9 @@ namespace Common
             LockFileTarget framework,
             PackageSpec packageSpec,
             Dictionary<string, string> projectPathToProjectNameMap,
-            bool checkVulnerabilities,
-            bool projectsOnly)
+            bool projectsOnly,
+            List<IPackageDependencyNodeDecorator> decorators,
+            CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(projectIdentity);
             ArgumentNullException.ThrowIfNull(framework);
@@ -100,11 +107,6 @@ namespace Common
             PackageDependencyGraph graph = new(new PackageDependencyNode(projectIdentity));
 
             Dictionary<string, PackageDependencyNode> packageIdToNode = GenerateNodesForAllPackagesInGraph(framework, projectsOnly);
-
-            if (checkVulnerabilities)
-            {
-                await VulnerabilityHelpers.GenerateVulnerabilitiesAsync(packageSpec, packageIdToNode, CancellationToken.None);
-            }
 
             packageIdToNode.Add(graph.Node.Identity.Id, (PackageDependencyNode)graph.Node);
 
@@ -154,6 +156,14 @@ namespace Common
                 VersionRange versionRange = new(node.Identity.Version);
                 graph.Node.ChildNodes.Add((node, versionRange));
                 node.ParentNodes.Add((graph.Node, versionRange));
+            }
+
+            foreach ((string _, PackageDependencyNode packageIdNode) in packageIdToNode)
+            {
+                foreach (var decorator in decorators)
+                {
+                    await decorator.DecorateAsync(packageIdNode, cancellationToken);
+                }
             }
 
             return graph;
