@@ -4,4 +4,4 @@
     {
         Task DecorateAsync(PackageDependencyNode dependencyNode, CancellationToken cancellationToken);
     }
-}
+} 
