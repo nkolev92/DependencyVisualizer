@@ -108,11 +108,11 @@ namespace Common
             ProjectRestoreMetadataFrameworkInfo restoreMetadataFramework = packageSpec.GetRestoreMetadataFramework(framework.TargetFramework);
             foreach (var projectReference in restoreMetadataFramework.ProjectReferences)
             {
-                if (!projectPathToProjectNameMap.TryGetValue(projectReference.ProjectPath, out string? inferedProjectName))
+                if (!projectPathToProjectNameMap.TryGetValue(projectReference.ProjectPath, out string? inferredProjectName))
                 {
-                    inferedProjectName = Path.GetFileNameWithoutExtension(projectReference.ProjectPath);
+                    inferredProjectName = Path.GetFileNameWithoutExtension(projectReference.ProjectPath);
                 }
-                PackageDependencyNode node = packageIdToNode[inferedProjectName];
+                PackageDependencyNode node = packageIdToNode[inferredProjectName];
                 VersionRange versionRange = new(node.Identity.Version);
                 graph.Node.ChildNodes.Add((node, versionRange));
                 node.ParentNodes.Add((graph.Node, versionRange));

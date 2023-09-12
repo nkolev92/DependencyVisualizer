@@ -13,12 +13,13 @@ namespace DependencyVisualizerTool
 {
     internal class Program
     {
-        private static readonly CancellationTokenSource CancellationTokenSource = new CancellationTokenSource();
+        private const string ToolName = "DependencyVisualizer"; // This must match the value of ToolCommandName in the project file.
+        private static readonly CancellationTokenSource CancellationTokenSource = new();
 
         public static int Main(string[] args)
         {
-            Console.CancelKeyPress += new ConsoleCancelEventHandler(myHandler);
-            var fileArgument = new Argument<FileInfo>(
+            Console.CancelKeyPress += new ConsoleCancelEventHandler(CancellationHandler);
+            var fileArgument = new Argument<FileInfo?>(
                 name: "projectFilePath",
                 description: "Project file path.",
                 parse: result =>
@@ -39,11 +40,11 @@ namespace DependencyVisualizerTool
             outputOption.AddAlias("-o");
 
             var checkVulnerabilityOption = new Option<bool?>(
-                name: "--visualize-vulnerabilities",
+                name: "--vulnerable",
                 description: "Whether to visualize the vulnerable packages in your package graph");
 
             var checkDeprecationOption = new Option<bool?>(
-                name: "--visualize-deprecations",
+                name: "--deprecated",
                 description: "Whether to visualize the deprecated packages in your package graph");
 
             var projectsOnlyOption = new Option<bool?>(
@@ -51,6 +52,7 @@ namespace DependencyVisualizerTool
                 description: "When used, generates a projects only graph.");
 
             var rootCommand = new RootCommand("Dependency visualizer app");
+            rootCommand.Name = ToolName;
             rootCommand.AddArgument(fileArgument);
             rootCommand.AddOption(outputOption);
             rootCommand.AddOption(checkVulnerabilityOption);
@@ -62,7 +64,7 @@ namespace DependencyVisualizerTool
 #if DEBUG
                 System.Diagnostics.Debugger.Launch();
 #endif
-                await GenerateGraph(fileArgument, outputOption, checkVulnerabilityOption, checkDeprecationOption, projectsOnly, CancellationTokenSource.Token);
+                await GenerateGraph(fileArgument!, outputOption, checkVulnerabilityOption, checkDeprecationOption, projectsOnly, CancellationTokenSource.Token);
             },
             fileArgument, outputOption, checkVulnerabilityOption, checkDeprecationOption, projectsOnlyOption);
 
@@ -74,7 +76,7 @@ namespace DependencyVisualizerTool
             MSBuildLocator.RegisterDefaults();
             string projectExtensionsPath = GetMSBuildProjectExtensionsPath(projectFile.FullName);
             LockFile? assetFile = GetAssetsFilePath(projectExtensionsPath);
-            DependencyGraphSpec dgspecFile = GetDgspecFilePath(projectExtensionsPath, projectFile);
+            DependencyGraphSpec? dgspecFile = GetDgspecFilePath(projectExtensionsPath, projectFile);
 
             if (outputFolder == null)
             {
@@ -127,15 +129,15 @@ namespace DependencyVisualizerTool
         {
             List<IPackageDependencyNodeDecorator> decorators = new();
             List<SourceRepository>? repositories = visualizeVulnerabilities || visualizeDeprecation ? GetHTTPSourceRepositories(packageSpec) : null;
-
+            SourceCacheContext sourceCacheContext = new();
             if (visualizeVulnerabilities)
             {
-                decorators.Add(new VulnerabilityInfoDecorator(repositories!, new SourceCacheContext()));
+                decorators.Add(new VulnerabilityInfoDecorator(repositories!, sourceCacheContext));
             }
 
             if (visualizeDeprecation)
             {
-                decorators.Add(new DeprecationInfoDecorator(repositories!, new SourceCacheContext()));
+                decorators.Add(new DeprecationInfoDecorator(repositories!, sourceCacheContext));
             }
 
             return decorators;
@@ -188,7 +190,7 @@ namespace DependencyVisualizerTool
             }
         }
 
-        private static DependencyGraphSpec GetDgspecFilePath(string projectExtensionsPath, FileInfo projectFile)
+        private static DependencyGraphSpec? GetDgspecFilePath(string projectExtensionsPath, FileInfo projectFile)
         {
             ArgumentNullException.ThrowIfNull(projectExtensionsPath);
 
@@ -232,12 +234,10 @@ namespace DependencyVisualizerTool
             }
         }
 
-        protected static void myHandler(object? sender, ConsoleCancelEventArgs args)
+        protected static void CancellationHandler(object? sender, ConsoleCancelEventArgs args)
         {
             args.Cancel = true;
             CancellationTokenSource.Cancel();
         }
-
     }
-
 }

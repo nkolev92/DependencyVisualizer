@@ -166,7 +166,7 @@ namespace DependencyVisualizerTool.Test
             actualDGML.Should().Be(expectedDGML, because: actualDGML);
         }
 
-        private async Task<PackageDependencyGraph> GetOnlyDependencyGraphAsync(string resourceName, List<IPackageDependencyNodeDecorator> decorators = null)
+        private async Task<PackageDependencyGraph> GetOnlyDependencyGraphAsync(string resourceName, List<IPackageDependencyNodeDecorator>? decorators = null)
         {
             var assetsFileText = TestHelpers.GetResource(resourceName, GetType());
 
