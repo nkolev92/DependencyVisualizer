@@ -28,7 +28,8 @@ namespace DependencyVisualizerTool
                                      id: firstNode.Identity.ToString(),
                                      label: firstNode.Identity.ToString(),
                                      type: firstNode.Identity.Type,
-                                     isVulnerable: firstNode.Identity.Vulnerable);
+                                     isVulnerable: firstNode.Identity.Vulnerable,
+                                     isDeprecated: firstNode.Identity.Deprecated);
             nodes.Add(firstNode.Identity.ToString(), firstNodeDGML);
 
             while (queue.Count > 0)
@@ -49,7 +50,8 @@ namespace DependencyVisualizerTool
                                                id: child.Item1.Identity.ToString(),
                                                label: child.Item1.Identity.ToString(),
                                                type: child.Item1.Identity.Type,
-                                               child.Item1.Identity.Vulnerable);
+                                               child.Item1.Identity.Vulnerable,
+                                               child.Item1.Identity.Deprecated);
                         nodes.Add(child.Item1.Identity.ToString(), currentDGML);
                     }
                 }
@@ -88,8 +90,18 @@ namespace DependencyVisualizerTool
                             new XAttribute("StrokeThickness", "1")),
                 new XElement(XName.Get("Category", DGMLxmlns),
                             new XAttribute("Id", "VulnerablePackage"),
-                            new XAttribute("Background", "Red"),
-                            new XAttribute("StrokeThickness", "1"))))
+                            new XAttribute("Background", "None"),
+                            new XAttribute("StrokeThickness", "4"),
+                            new XAttribute("Stroke", "Red")),
+                new XElement(XName.Get("Category", DGMLxmlns),
+                            new XAttribute("Id", "DeprecatedPackage"),
+                            new XAttribute("Background", "Yellow"),
+                            new XAttribute("StrokeThickness", "1")),
+                new XElement(XName.Get("Category", DGMLxmlns),
+                            new XAttribute("Id", "VulnerableAndDeprecatedPackage"),
+                            new XAttribute("Background", "Yellow"),
+                            new XAttribute("StrokeThickness", "4"),
+                            new XAttribute("Stroke", "Red"))))
             );
             return document;
         }
@@ -102,16 +114,31 @@ namespace DependencyVisualizerTool
 
             public string Category { get; set; }
 
-            public DGMLNode(string id, string label, DependencyType type, bool isVulnerable)
+            public DGMLNode(string id, string label, DependencyType type, bool isVulnerable, bool isDeprecated)
             {
                 this.Id = id;
                 this.Label = label;
-                this.Category = isVulnerable ? "VulnerablePackage" : type.ToString();
+                this.Category = GetCategory(type, isVulnerable, isDeprecated);
             }
 
-            public bool Equals(DGMLNode other)
+            private static string GetCategory(DependencyType type, bool isVulnerable, bool isDeprecated)
             {
-                return Id.Equals(other.Id, StringComparison.OrdinalIgnoreCase);
+                return isVulnerable && isDeprecated ?
+                    "VulnerableAndDeprecatedPackage" :
+                    isVulnerable ?
+                        "VulnerablePackage" :
+                        isDeprecated ?
+                            "DeprecatedPackage" :
+                            type.ToString();
+            }
+
+            public bool Equals(DGMLNode? other)
+            {
+                if (other != null)
+                {
+                    return Id.Equals(other.Id, StringComparison.OrdinalIgnoreCase);
+                }
+                return false;
             }
         }
 

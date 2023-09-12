@@ -1,9 +1,9 @@
 ﻿<DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
   <Nodes>
     <Node Id="TestProject.1.0.0" Label="TestProject.1.0.0" Category="Project" />
-    <Node Id="A.1.0.0" Label="A.1.0.0" Category="Package" />
-    <Node Id="B.1.0.0" Label="B.1.0.0" Category="Package" />
-    <Node Id="C.1.1.0" Label="C.1.1.0" Category="Package" />
+    <Node Id="A.1.0.0" Label="A.1.0.0" Category="VulnerablePackage" />
+    <Node Id="B.1.0.0" Label="B.1.0.0" Category="DeprecatedPackage" />
+    <Node Id="C.1.1.0" Label="C.1.1.0" Category="VulnerableAndDeprecatedPackage" />
   </Nodes>
   <Links>
     <Link Source="TestProject.1.0.0" Target="A.1.0.0" Label="[1.0.0, )" />

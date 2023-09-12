@@ -40,7 +40,11 @@ namespace DependencyVisualizerTool
 
             var checkVulnerabilityOption = new Option<bool?>(
                 name: "--visualize-vulnerabilities",
-                description: "Whether to visualize the vulnerabilities for your package graph");
+                description: "Whether to visualize the vulnerable packages in your package graph");
+
+            var checkDeprecationOption = new Option<bool?>(
+                name: "--visualize-deprecations",
+                description: "Whether to visualize the deprecated packages in your package graph");
 
             var projectsOnlyOption = new Option<bool?>(
                 name: "--projects-only",
@@ -50,21 +54,22 @@ namespace DependencyVisualizerTool
             rootCommand.AddArgument(fileArgument);
             rootCommand.AddOption(outputOption);
             rootCommand.AddOption(checkVulnerabilityOption);
+            rootCommand.AddOption(checkDeprecationOption);
             rootCommand.AddOption(projectsOnlyOption);
 
-            rootCommand.SetHandler(async (fileArgument, outputOption, checkVulnerabilityOption, projectsOnly) =>
+            rootCommand.SetHandler(async (fileArgument, outputOption, checkVulnerabilityOption, checkDeprecationOption, projectsOnly) =>
             {
 #if DEBUG
                 System.Diagnostics.Debugger.Launch();
 #endif
-                await GenerateGraph(fileArgument, outputOption, checkVulnerabilityOption, projectsOnly, CancellationTokenSource.Token);
+                await GenerateGraph(fileArgument, outputOption, checkVulnerabilityOption, checkDeprecationOption, projectsOnly, CancellationTokenSource.Token);
             },
-            fileArgument, outputOption, checkVulnerabilityOption, projectsOnlyOption);
+            fileArgument, outputOption, checkVulnerabilityOption, checkDeprecationOption, projectsOnlyOption);
 
             return rootCommand.InvokeAsync(args).Result;
         }
 
-        private static async Task<int> GenerateGraph(FileInfo projectFile, string? outputFolder, bool? checkVulnerabilities, bool? projectsOnly, CancellationToken cancellationToken)
+        private static async Task<int> GenerateGraph(FileInfo projectFile, string? outputFolder, bool? checkVulnerabilities, bool? checkDeprecation, bool? projectsOnly, CancellationToken cancellationToken)
         {
             MSBuildLocator.RegisterDefaults();
             string projectExtensionsPath = GetMSBuildProjectExtensionsPath(projectFile.FullName);
@@ -85,7 +90,7 @@ namespace DependencyVisualizerTool
                 return 1;
             }
 
-            var decorators = CreateDecorators(assetFile.PackageSpec, checkVulnerabilities == true);
+            var decorators = CreateDecorators(assetFile.PackageSpec, checkVulnerabilities == true, checkDeprecation == true);
 
             Dictionary<string, PackageDependencyGraph> dictGraph = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(
                 assetFile,
@@ -118,14 +123,19 @@ namespace DependencyVisualizerTool
             return 0;
         }
 
-        private static List<IPackageDependencyNodeDecorator> CreateDecorators(PackageSpec packageSpec, bool visualizeVulnerabilities)
+        private static List<IPackageDependencyNodeDecorator> CreateDecorators(PackageSpec packageSpec, bool visualizeVulnerabilities, bool visualizeDeprecation)
         {
             List<IPackageDependencyNodeDecorator> decorators = new();
+            List<SourceRepository>? repositories = visualizeVulnerabilities || visualizeDeprecation ? GetHTTPSourceRepositories(packageSpec) : null;
 
             if (visualizeVulnerabilities)
             {
-                var repositories = GetHTTPSourceRepositories(packageSpec);
-                decorators.Add(new VulnerabilityInfoDecorator(repositories, new SourceCacheContext()));
+                decorators.Add(new VulnerabilityInfoDecorator(repositories!, new SourceCacheContext()));
+            }
+
+            if (visualizeDeprecation)
+            {
+                decorators.Add(new DeprecationInfoDecorator(repositories!, new SourceCacheContext()));
             }
 
             return decorators;
@@ -222,7 +232,7 @@ namespace DependencyVisualizerTool
             }
         }
 
-        protected static void myHandler(object sender, ConsoleCancelEventArgs args)
+        protected static void myHandler(object? sender, ConsoleCancelEventArgs args)
         {
             args.Cancel = true;
             CancellationTokenSource.Cancel();
