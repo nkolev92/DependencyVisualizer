@@ -27,7 +27,7 @@ namespace Common
                 return;
             }
 
-            if (_packageMetadataResourcesAcquired)
+            if (!_packageMetadataResourcesAcquired)
             {
                 await InitializeMetadataResource(cancellationToken);
                 _packageMetadataResourcesAcquired = true;
@@ -60,7 +60,11 @@ namespace Common
             {
                 if (result?.Result != null)
                 {
-                    isDeprecated = isDeprecated || await result.Result.GetDeprecationMetadataAsync() != null;
+                    if (!isDeprecated)
+                    {
+                        var deprecationMetadata = await result.Result.GetDeprecationMetadataAsync();
+                        isDeprecated = isDeprecated || deprecationMetadata != null;
+                    }
                 }
             }
 
