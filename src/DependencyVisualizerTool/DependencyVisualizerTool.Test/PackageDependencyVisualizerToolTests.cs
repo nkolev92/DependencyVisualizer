@@ -1,7 +1,11 @@
+using System.Reflection.Emit;
 using System.Text.RegularExpressions;
 using Common;
 using FluentAssertions;
+using FluentAssertions.Equivalency;
+using NuGet.Packaging.Core;
 using NuGet.ProjectModel;
+using NuGet.Versioning;
 using SharedUtility;
 
 namespace DependencyVisualizerTool.Test
@@ -143,22 +147,67 @@ namespace DependencyVisualizerTool.Test
             actualDGML.Should().Be(expectedDGML, because: actualDGML);
         }
 
-        private static string RemoveWhitespace(string s)
+        [Fact]
+        public async Task TransGraphToDGMLXDocument_WithVulnerableAndDeprecatedPackages_CreateDGMLCorrectly()
         {
-            return Regex.Replace(s, @"\s+", string.Empty);
+            var packageA = new PackageIdentity("A", new NuGetVersion(1, 0, 0));
+            var packageB = new PackageIdentity("B", new NuGetVersion(1, 0, 0));
+            var packageC = new PackageIdentity("C", new NuGetVersion(1, 1, 0));
+            var decorator = new VulnerabilityAndDeprecationDecorator(
+                vulnerablePackages: new HashSet<PackageIdentity> { packageA, packageC },
+                deprecatedPackages: new HashSet<PackageIdentity> { packageB, packageC });
+
+            var graph = await GetOnlyDependencyGraphAsync("DependencyVisualizerTool.Test.compiler.resources.diamonddependency.assets.json", new() { decorator });
+
+            string actualDGML = RemoveWhitespace(DGMLDependencyVisualizerTool.TransGraphToDGMLXDocument(graph).ToString());
+
+            string expectedDGML = RemoveWhitespace(TestHelpers.GetResource("DependencyVisualizerTool.Test.compiler.resources.diamonddependency.withvulnerabilitiesanddeprecations.dgml", GetType()));
+
+            actualDGML.Should().Be(expectedDGML, because: actualDGML);
         }
 
-        private async Task<PackageDependencyGraph> GetOnlyDependencyGraphAsync(string resourceName)
+        private async Task<PackageDependencyGraph> GetOnlyDependencyGraphAsync(string resourceName, List<IPackageDependencyNodeDecorator> decorators = null)
         {
             var assetsFileText = TestHelpers.GetResource(resourceName, GetType());
 
             var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
             var dependencyGraphSpec = new DependencyGraphSpec();
             dependencyGraphSpec.AddProject(assetsFile.PackageSpec);
-            Dictionary<string, PackageDependencyGraph> graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, dependencyGraphSpec, projectsOnly: false, new(), CancellationToken.None);
+            Dictionary<string, PackageDependencyGraph> graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, dependencyGraphSpec, projectsOnly: false, decorators ?? new(), CancellationToken.None);
             graphs.Should().HaveCount(1);
             var graph = graphs.Single().Value;
             return graph;
+        }
+
+        private static string RemoveWhitespace(string s)
+        {
+            return Regex.Replace(s, @"\s+", string.Empty);
+        }
+
+        private class VulnerabilityAndDeprecationDecorator : IPackageDependencyNodeDecorator
+        {
+            private readonly HashSet<PackageIdentity> _vulnerablePackages;
+            private readonly HashSet<PackageIdentity> _deprecatedPackages;
+
+            public VulnerabilityAndDeprecationDecorator(HashSet<PackageIdentity> vulnerablePackages, HashSet<PackageIdentity> deprecatedPackages)
+            {
+                _vulnerablePackages = vulnerablePackages ?? throw new ArgumentNullException(nameof(vulnerablePackages));
+                _deprecatedPackages = deprecatedPackages ?? throw new ArgumentNullException(nameof(deprecatedPackages));
+            }
+
+            public Task DecorateAsync(PackageDependencyNode dependencyNode, CancellationToken cancellationToken)
+            {
+                PackageIdentity identity = dependencyNode.Identity;
+                if (_vulnerablePackages.Contains(identity))
+                {
+                    dependencyNode.Identity.Vulnerable = true;
+                }
+                if (_deprecatedPackages.Contains(identity))
+                {
+                    dependencyNode.Identity.Deprecated = true;
+                }
+                return Task.CompletedTask;
+            }
         }
     }
 }

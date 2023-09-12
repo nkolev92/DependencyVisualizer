@@ -15,19 +15,5 @@ namespace Common
         {
             Type = type;
         }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(base.GetHashCode(), Type, Vulnerable, Deprecated);
-        }
-
-        public override bool Equals(object? obj)
-        {
-            return obj is DependencyNodeIdentity identity &&
-                   base.Equals(obj) &&
-                   Type == identity.Type &&
-                   Vulnerable == identity.Vulnerable &&
-                   Deprecated == identity.Deprecated;
-        }
     }
 }

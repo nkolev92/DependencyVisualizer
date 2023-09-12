@@ -1,0 +1,22 @@
+﻿<DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
+  <Nodes>
+    <Node Id="TestProject.1.0.0" Label="TestProject.1.0.0" Category="Project" />
+    <Node Id="A.1.0.0" Label="A.1.0.0" Category="VulnerablePackage" />
+    <Node Id="B.1.0.0" Label="B.1.0.0" Category="DeprecatedPackage" />
+    <Node Id="C.1.1.0" Label="C.1.1.0" Category="VulnerableAndDeprecatedPackage" />
+  </Nodes>
+  <Links>
+    <Link Source="TestProject.1.0.0" Target="A.1.0.0" Label="[1.0.0, )" />
+    <Link Source="TestProject.1.0.0" Target="B.1.0.0" Label="[1.0.0, )" />
+    <Link Source="A.1.0.0" Target="C.1.1.0" Label="[1.0.0, )" />
+    <Link Source="B.1.0.0" Target="C.1.1.0" Label="[1.1.0, )" />
+  </Links>
+  <Categories>
+    <Category Id="Project" Background="Lightblue" StrokeThickness="2" />
+    <Category Id="Package" Background="None" StrokeThickness="1" />
+    <Category Id="VulnerablePackage" Background="None" StrokeThickness="4" Stroke="Red" />
+    <Category Id="DeprecatedPackage" Background="Yellow" StrokeThickness="1" />
+    <Category Id="VulnerableAndDeprecatedPackage" Background="Yellow" StrokeThickness="4" Stroke="Red" />
+  </Categories>
+
+</DirectedGraph>

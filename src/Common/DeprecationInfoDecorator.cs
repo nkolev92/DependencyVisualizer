@@ -7,7 +7,6 @@ namespace Common
 {
     public class DeprecationInfoDecorator : IPackageDependencyNodeDecorator
     {
-        private readonly ILogger _logger;
         private readonly List<SourceRepository> _sourceRepositories;
         private readonly SourceCacheContext _sourceCacheContext;
         private readonly Dictionary<PackageIdentity, bool> PackageDeprecationData = new();
@@ -18,7 +17,6 @@ namespace Common
         {
             _sourceRepositories = sourceRepositories ?? throw new ArgumentNullException(nameof(sourceRepositories));
             _sourceCacheContext = sourceCacheContext ?? throw new ArgumentNullException(nameof(sourceCacheContext));
-            _logger = AppLogger.Logger;
         }
 
         public async Task DecorateAsync(PackageDependencyNode dependencyNode, CancellationToken cancellationToken)
