@@ -62,7 +62,9 @@ namespace DependencyVisualizerTool.Test
             var assetsFileText = TestHelpers.GetResource("DependencyVisualizerTool.Test.compiler.resources.multitargeted.assets.json", GetType());
 
             var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
-            var graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, new GraphOptions(generateProjectsOnly: false));
+            var dependencyGraphSpec = new DependencyGraphSpec();
+            dependencyGraphSpec.AddProject(assetsFile.PackageSpec);
+            Dictionary<string, PackageDependencyGraph> graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, dependencyGraphSpec, new GraphOptions(generateProjectsOnly: false), new(), CancellationToken.None);
             graphs.Should().HaveCount(2);
             var graph = graphs.First().Value;
 
@@ -79,7 +81,9 @@ namespace DependencyVisualizerTool.Test
             var assetsFileText = TestHelpers.GetResource("DependencyVisualizerTool.Test.compiler.resources.nuget.common.assets.json", GetType());
 
             var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
-            var graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, new GraphOptions(generateProjectsOnly: false));
+            var dependencyGraphSpec = new DependencyGraphSpec();
+            dependencyGraphSpec.AddProject(assetsFile.PackageSpec);
+            Dictionary<string, PackageDependencyGraph> graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, dependencyGraphSpec, new GraphOptions(generateProjectsOnly: false), new(), CancellationToken.None);
             graphs.Should().HaveCount(2);
             var graph = graphs.First().Value;
 
@@ -149,7 +153,9 @@ namespace DependencyVisualizerTool.Test
             var assetsFileText = TestHelpers.GetResource(resourceName, GetType());
 
             var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
-            var graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, new GraphOptions(generateProjectsOnly: false));
+            var dependencyGraphSpec = new DependencyGraphSpec();
+            dependencyGraphSpec.AddProject(assetsFile.PackageSpec);
+            Dictionary<string, PackageDependencyGraph> graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, dependencyGraphSpec, new GraphOptions(generateProjectsOnly: false), new(), CancellationToken.None);
             graphs.Should().HaveCount(1);
             var graph = graphs.Single().Value;
             return graph;

@@ -2,7 +2,6 @@
 using NuGet.ProjectModel;
 using NuGet.Versioning;
 using System.Diagnostics;
-using System.Threading;
 
 namespace Common
 {
@@ -13,13 +12,6 @@ namespace Common
         {
         }
 
-        /// <summary>
-        /// Generate a graph given an assets file
-        /// </summary>
-        /// <param name="assetsFile">The assets file must not be null.</param>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException">If the assets file is not valid</exception>
-        /// <exception cref="ArgumentNullException">If the assets file is null</exception>
         public static async Task<Dictionary<string, PackageDependencyGraph>> GenerateAllDependencyGraphsFromAssetsFileAsync(
             LockFile assetsFile,
             DependencyGraphSpec dependencyGraphSpec,
@@ -60,37 +52,6 @@ namespace Common
             return aliasToDependencyGraph;
         }
 
-        /// <summary>
-        /// Generate a graph given an assets file
-        /// </summary>
-        /// <param name="assetsFile">The assets file must not be null.</param>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException">If the assets file is not valid</exception>
-        /// <exception cref="ArgumentNullException">If the assets file is null</exception>
-        public static async Task<Dictionary<string, PackageDependencyGraph>> GenerateAllDependencyGraphsFromAssetsFileAsync(LockFile assetsFile, GraphOptions graphOptions)
-        {
-            ArgumentNullException.ThrowIfNull(assetsFile);
-            DependencyNodeIdentity projectIdentity = new(assetsFile.PackageSpec.Name, assetsFile.PackageSpec.Version, DependencyType.Project);
-
-            List<LockFileTarget> frameworks = assetsFile.Targets.Where(e => string.IsNullOrEmpty(e.RuntimeIdentifier)).ToList();
-
-            if (frameworks.Count == 0)
-            {
-                throw new InvalidProgramException("There are no valid frameworks to process in the assets file");
-            }
-
-            Dictionary<string, PackageDependencyGraph> aliasToDependencyGraph = new();
-
-            foreach (var framework in frameworks)
-            {
-                var dependenyGraph = await GenerateGraphForAGivenFramework(projectIdentity, framework, assetsFile.PackageSpec, new(), projectsOnly: false, new(), CancellationToken.None);
-                var alias = assetsFile.PackageSpec.GetTargetFramework(framework.TargetFramework);
-                aliasToDependencyGraph.Add(alias.TargetAlias, dependenyGraph);
-            }
-
-            return aliasToDependencyGraph;
-        }
-
         private static async Task<PackageDependencyGraph> GenerateGraphForAGivenFramework(
             DependencyNodeIdentity projectIdentity,
             LockFileTarget framework,
@@ -104,8 +65,8 @@ namespace Common
             ArgumentNullException.ThrowIfNull(framework);
             ArgumentNullException.ThrowIfNull(packageSpec);
             ArgumentNullException.ThrowIfNull(projectPathToProjectNameMap);
-            PackageDependencyGraph graph = new(new PackageDependencyNode(projectIdentity));
 
+            PackageDependencyGraph graph = new(new PackageDependencyNode(projectIdentity));
             Dictionary<string, PackageDependencyNode> packageIdToNode = GenerateNodesForAllPackagesInGraph(framework, projectsOnly);
 
             packageIdToNode.Add(graph.Node.Identity.Id, (PackageDependencyNode)graph.Node);

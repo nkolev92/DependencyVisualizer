@@ -13,7 +13,9 @@ namespace Common.Test
             var assetsFileText = TestHelpers.GetResource("Common.Test.compiler.resources.nuget.common.assets.json", GetType());
 
             var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
-            var graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, new GraphOptions(generateProjectsOnly: false));
+            var dependencyGraphSpec = new DependencyGraphSpec();
+            dependencyGraphSpec.AddProject(assetsFile.PackageSpec);
+            var graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, dependencyGraphSpec, new GraphOptions(generateProjectsOnly: false), new(), CancellationToken.None);
             graphs.Should().HaveCount(2);
 
             var graph = graphs.First().Value;
@@ -59,9 +61,9 @@ namespace Common.Test
 
         // SingleProjectSingleFramework -> Newtonsoft.Json 13.0.1
         [Fact]
-        public void FromAssetsFile_WithSingleFramework_WithSinglePackageReference_ParsesGraphCorrectly()
+        public async Task FromAssetsFile_WithSingleFramework_WithSinglePackageReference_ParsesGraphCorrectly()
         {
-            var graph = GetOnlyDependencyGraph("Common.Test.compiler.resources.singlepackagereference.assets.json");
+            var graph = await GetOnlyDependencyGraphAsync("Common.Test.compiler.resources.singlepackagereference.assets.json");
 
             graph.Node.Identity.Id.Should().Be("SingleProjectSingleFramework");
             graph.Node.ParentNodes.Should().HaveCount(0);
@@ -75,9 +77,9 @@ namespace Common.Test
 
         // Parent -> Leaf 3.0.0
         [Fact]
-        public void FromAssetsFile_WithSingleFramework_WithSingleProjectReference_ParsesGraphCorrectly()
+        public async Task FromAssetsFile_WithSingleFramework_WithSingleProjectReference_ParsesGraphCorrectly()
         {
-            var graph = GetOnlyDependencyGraph("Common.Test.compiler.resources.singleprojectreference.assets.json");
+            var graph = await GetOnlyDependencyGraphAsync("Common.Test.compiler.resources.singleprojectreference.assets.json");
 
             graph.Node.Identity.Id.Should().Be("Parent");
             graph.Node.ParentNodes.Should().HaveCount(0);
@@ -93,9 +95,9 @@ namespace Common.Test
 
         // TransitivePackageReference -> NuGet.Common 6.3.0 -> NuGet.Frameworks 6.3.0
         [Fact]
-        public void FromAssetsFile_WithTransitivePackageReference_ParsesGraphCorrectly()
+        public async Task FromAssetsFile_WithTransitivePackageReference_ParsesGraphCorrectly()
         {
-            var graph = GetOnlyDependencyGraph("Common.Test.compiler.resources.transitivepackagereference.assets.json");
+            var graph = await GetOnlyDependencyGraphAsync("Common.Test.compiler.resources.transitivepackagereference.assets.json");
 
             graph.Node.Identity.Id.Should().Be("TransitivePackageReference");
             graph.Node.ParentNodes.Should().HaveCount(0);
@@ -120,9 +122,9 @@ namespace Common.Test
 
         // ParentProject -> LeafProject 1.0.0 -> NuGet.Versioning 6.3.0
         [Fact]
-        public void FromAssetsFile_WithTransitiveProjectReference_ParsesGraphCorrectly()
+        public async Task FromAssetsFile_WithTransitiveProjectReference_ParsesGraphCorrectly()
         {
-            var graph = GetOnlyDependencyGraph("Common.Test.compiler.resources.transitiveprojectreference.assets.json");
+            var graph = await GetOnlyDependencyGraphAsync("Common.Test.compiler.resources.transitiveprojectreference.assets.json");
 
             graph.Node.Identity.Id.Should().Be("ParentProject");
             graph.Node.ParentNodes.Should().HaveCount(0);
@@ -146,9 +148,9 @@ namespace Common.Test
 
         // Project -> (>= 6.2.5) NuGet.Common 6.3.0 -> NuGet.Frameworks 6.3.0
         [Fact]
-        public void FromAssetsFile_WithPackageReference_AndMinVersionDoesNotMatchSelectedVersion_ParsesGraphCorrectly()
+        public async Task FromAssetsFile_WithPackageReference_AndMinVersionDoesNotMatchSelectedVersion_ParsesGraphCorrectly()
         {
-            var graph = GetOnlyDependencyGraph("Common.Test.compiler.resources.missingpackageversion.assets.json");
+            var graph = await GetOnlyDependencyGraphAsync("Common.Test.compiler.resources.missingpackageversion.assets.json");
 
             graph.Node.Identity.Id.Should().Be("Project");
             graph.Node.ParentNodes.Should().HaveCount(0);
@@ -172,9 +174,9 @@ namespace Common.Test
         // Project -> NuGet.Common 6.3.0 -> NuGet.Frameworks 6.3.0
         // Project -> Newtonsoft.Json.Bson 1.0.2 -> Newtonsoft.Json 12.0.1
         [Fact]
-        public void FromAssetsFile_WithMultipleDirectAndTransitivePackageReferences_ParsesGraphCorrectly()
+        public async Task FromAssetsFile_WithMultipleDirectAndTransitivePackageReferences_ParsesGraphCorrectly()
         {
-            var graph = GetOnlyDependencyGraph("Common.Test.compiler.resources.multipleversions.assets.json");
+            var graph = await GetOnlyDependencyGraphAsync("Common.Test.compiler.resources.multipleversions.assets.json");
 
             graph.Node.Identity.Id.Should().Be("Project");
             graph.Node.ParentNodes.Should().HaveCount(0);
@@ -212,9 +214,9 @@ namespace Common.Test
         // TestProject -> A 1.0.0 -> (>= 1.0.0) C 1.1.0
         // TestProject -> B 1.0.0 -> (>= 1.1.0) C 1.1.0
         [Fact]
-        public void FromAssetsFile_WithADiamondDependency_ParsesGraphCorrectly()
+        public async Task FromAssetsFile_WithADiamondDependency_ParsesGraphCorrectly()
         {
-            var graph = GetOnlyDependencyGraph("Common.Test.compiler.resources.diamonddependency.assets.json");
+            var graph = await GetOnlyDependencyGraphAsync("Common.Test.compiler.resources.diamonddependency.assets.json");
 
             graph.Node.Identity.Id.Should().Be("TestProject");
             graph.Node.ParentNodes.Should().HaveCount(0);
@@ -255,9 +257,9 @@ namespace Common.Test
         // TestProject -> A 1.0.0 -> (>= 1.0.0) B 2.0.0
         // TestProject -> B 2.0.0 
         [Fact]
-        public void FromAssetsFile_WithADiamondDependencyAsDirectReference_ParsesGraphCorrectly()
+        public async Task FromAssetsFile_WithADiamondDependencyAsDirectReference_ParsesGraphCorrectly()
         {
-            var graph = GetOnlyDependencyGraph("Common.Test.compiler.resources.diamonddependencywithtoplevel.assets.json");
+            var graph = await GetOnlyDependencyGraphAsync("Common.Test.compiler.resources.diamonddependencywithtoplevel.assets.json");
 
             graph.Node.Identity.Id.Should().Be("TestProject");
             graph.Node.ParentNodes.Should().HaveCount(0);
@@ -296,7 +298,9 @@ namespace Common.Test
             var assetsFileText = TestHelpers.GetResource("Common.Test.compiler.resources.multitargeted.assets.json", GetType());
 
             var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
-            Dictionary<string, PackageDependencyGraph> graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, new GraphOptions(generateProjectsOnly: false));
+            var dependencyGraphSpec = new DependencyGraphSpec();
+            dependencyGraphSpec.AddProject(assetsFile.PackageSpec);
+            Dictionary<string, PackageDependencyGraph> graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, dependencyGraphSpec, new GraphOptions(generateProjectsOnly: false), new(), CancellationToken.None);
 
             var net472Graph = graphs["net472"];
             net472Graph.Node.Identity.Id.Should().Be("TestProject");
@@ -330,7 +334,7 @@ namespace Common.Test
             var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
             var dgSpec = DependencyGraphSpec.Load(tempFile.FilePath);
 
-            var graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, dgSpec, new GraphOptions(generateProjectsOnly: false), new(), CancellationToken.None);
+            Dictionary<string, PackageDependencyGraph> graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, dgSpec, new GraphOptions(generateProjectsOnly: false), new(), CancellationToken.None);
             graphs.Should().HaveCount(1);
             var graph = graphs.Single().Value;
 
@@ -352,12 +356,14 @@ namespace Common.Test
             ValidateBidirectionalEdges(nephewNode.Item1, nugetVersioning, VersionRange.Parse("6.3.0"));
         }
 
-        private PackageDependencyGraph GetOnlyDependencyGraph(string resourceName)
+        private async Task<PackageDependencyGraph> GetOnlyDependencyGraphAsync(string resourceName)
         {
             var assetsFileText = TestHelpers.GetResource(resourceName, GetType());
 
             var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
-            var graphs = PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, new GraphOptions(generateProjectsOnly: false)).Result;
+            var dependencyGraphSpec = new DependencyGraphSpec();
+            dependencyGraphSpec.AddProject(assetsFile.PackageSpec);
+            Dictionary<string, PackageDependencyGraph> graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, dependencyGraphSpec, new GraphOptions(generateProjectsOnly: false), new(), CancellationToken.None);
             graphs.Should().HaveCount(1);
             var graph = graphs.Single().Value;
             return graph;

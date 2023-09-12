@@ -13,8 +13,11 @@ namespace DependencyVisualizerTool
 {
     internal class Program
     {
+        private static CancellationTokenSource CancellationTokenSource = new CancellationTokenSource();
+
         public static int Main(string[] args)
         {
+            Console.CancelKeyPress += new ConsoleCancelEventHandler(myHandler);
             var fileArgument = new Argument<FileInfo>(
                 name: "projectFilePath",
                 description: "Project file path.",
@@ -54,14 +57,14 @@ namespace DependencyVisualizerTool
 #if DEBUG
                 System.Diagnostics.Debugger.Launch();
 #endif
-                await GenerateGraph(fileArgument, outputOption, checkVulnerabilityOption, projectsOnly);
+                await GenerateGraph(fileArgument, outputOption, checkVulnerabilityOption, projectsOnly, CancellationTokenSource.Token);
             },
             fileArgument, outputOption, checkVulnerabilityOption, projectsOnlyOption);
 
             return rootCommand.InvokeAsync(args).Result;
         }
 
-        private static async Task<int> GenerateGraph(FileInfo projectFile, string? outputFolder, bool? checkVulnerabilities, bool? projectsOnly)
+        private static async Task<int> GenerateGraph(FileInfo projectFile, string? outputFolder, bool? checkVulnerabilities, bool? projectsOnly, CancellationToken cancellationToken)
         {
             MSBuildLocator.RegisterDefaults();
             string projectExtensionsPath = GetMSBuildProjectExtensionsPath(projectFile.FullName);
@@ -89,7 +92,7 @@ namespace DependencyVisualizerTool
                 dgspecFile,
                 new GraphOptions(projectsOnly == true),
                 decorators,
-                CancellationToken.None);
+                cancellationToken);
 
             var outputFiles = new List<string>(dictGraph.Count);
             foreach (var keyValuePair in dictGraph)
@@ -99,7 +102,7 @@ namespace DependencyVisualizerTool
                 string dgmlFileName = Path.Combine(outputFolder, $"{projectName}_{tfm}.dgml");
                 try
                 {
-                    DGMLDependencyVisualizerTool.TransGraphToDGMLFile(keyValuePair.Value, dgmlFileName, projectsOnly != true);
+                    DGMLDependencyVisualizerTool.TransGraphToDGMLFile(keyValuePair.Value, dgmlFileName, populateCosts: projectsOnly != true);
                     outputFiles.Add(dgmlFileName);
                 }
                 catch (Exception e)
@@ -173,7 +176,6 @@ namespace DependencyVisualizerTool
                 AppLogger.Logger.LogDebug(e.StackTrace);
                 return null;
             }
-
         }
 
         private static DependencyGraphSpec GetDgspecFilePath(string projectExtensionsPath, FileInfo projectFile)
@@ -218,6 +220,12 @@ namespace DependencyVisualizerTool
                     AppLogger.Logger.LogDebug(e.StackTrace);
                 }
             }
+        }
+
+        protected static void myHandler(object sender, ConsoleCancelEventArgs args)
+        {
+            args.Cancel = true;
+            CancellationTokenSource.Cancel();
         }
 
     }
