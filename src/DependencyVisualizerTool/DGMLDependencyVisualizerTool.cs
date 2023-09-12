@@ -1,15 +1,6 @@
-﻿using Common;
-using NuGet.Packaging.Core;
+﻿using System.Xml.Linq;
+using Common;
 using NuGet.Versioning;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Emit;
-using System.Reflection.Metadata;
-using System.Resources;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace DependencyVisualizerTool
 {
@@ -26,11 +17,11 @@ namespace DependencyVisualizerTool
         public static XDocument TransGraphToDGMLXDocument(PackageDependencyGraph graph, bool populateCosts = true)
         {
             // Visited nodes
-            Dictionary<string, DGMLNode> nodes = new Dictionary<string, DGMLNode>();
-            List<DGMLLink> links = new List<DGMLLink>();
+            Dictionary<string, DGMLNode> nodes = new();
+            List<DGMLLink> links = new();
 
             //BFS on the graph
-            Queue<Node<DependencyNodeIdentity, VersionRange>> queue = new Queue<Node<DependencyNodeIdentity, VersionRange>>();
+            Queue<Node<DependencyNodeIdentity, VersionRange>> queue = new();
             Node<DependencyNodeIdentity, VersionRange> firstNode = graph.Node;
             queue.Enqueue(firstNode);
             DGMLNode firstNodeDGML = new DGMLNode(

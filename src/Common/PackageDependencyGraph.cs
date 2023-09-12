@@ -1,7 +1,7 @@
-﻿using NuGet.Packaging.Core;
+﻿using System.Diagnostics;
+using NuGet.Packaging.Core;
 using NuGet.ProjectModel;
 using NuGet.Versioning;
-using System.Diagnostics;
 
 namespace Common
 {
@@ -15,13 +15,12 @@ namespace Common
         public static async Task<Dictionary<string, PackageDependencyGraph>> GenerateAllDependencyGraphsFromAssetsFileAsync(
             LockFile assetsFile,
             DependencyGraphSpec dependencyGraphSpec,
-            GraphOptions graphOptions,
+            bool projectsOnly,
             List<IPackageDependencyNodeDecorator> decorators,
             CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(assetsFile);
             ArgumentNullException.ThrowIfNull(dependencyGraphSpec);
-            ArgumentNullException.ThrowIfNull(graphOptions);
             ArgumentNullException.ThrowIfNull(decorators);
 
             DependencyNodeIdentity projectIdentity = new(assetsFile.PackageSpec.Name, assetsFile.PackageSpec.Version, DependencyType.Project);
@@ -44,7 +43,7 @@ namespace Common
 
             foreach (var framework in frameworks)
             {
-                PackageDependencyGraph dependencyGraph = await GenerateGraphForAGivenFramework(projectIdentity, framework, assetsFile.PackageSpec, projectPathToProjectNameMap, graphOptions.GenerateProjectsOnly, decorators, cancellationToken);
+                PackageDependencyGraph dependencyGraph = await GenerateGraphForAGivenFramework(projectIdentity, framework, assetsFile.PackageSpec, projectPathToProjectNameMap, projectsOnly, decorators, cancellationToken);
                 TargetFrameworkInformation alias = assetsFile.PackageSpec.GetTargetFramework(framework.TargetFramework);
                 aliasToDependencyGraph.Add(alias.TargetAlias, dependencyGraph);
             }

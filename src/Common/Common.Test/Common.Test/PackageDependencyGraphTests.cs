@@ -15,7 +15,7 @@ namespace Common.Test
             var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
             var dependencyGraphSpec = new DependencyGraphSpec();
             dependencyGraphSpec.AddProject(assetsFile.PackageSpec);
-            var graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, dependencyGraphSpec, new GraphOptions(generateProjectsOnly: false), new(), CancellationToken.None);
+            var graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, dependencyGraphSpec, projectsOnly: false, new(), CancellationToken.None);
             graphs.Should().HaveCount(2);
 
             var graph = graphs.First().Value;
@@ -300,7 +300,7 @@ namespace Common.Test
             var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
             var dependencyGraphSpec = new DependencyGraphSpec();
             dependencyGraphSpec.AddProject(assetsFile.PackageSpec);
-            Dictionary<string, PackageDependencyGraph> graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, dependencyGraphSpec, new GraphOptions(generateProjectsOnly: false), new(), CancellationToken.None);
+            Dictionary<string, PackageDependencyGraph> graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, dependencyGraphSpec, projectsOnly: false, new(), CancellationToken.None);
 
             var net472Graph = graphs["net472"];
             net472Graph.Node.Identity.Id.Should().Be("TestProject");
@@ -334,7 +334,7 @@ namespace Common.Test
             var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
             var dgSpec = DependencyGraphSpec.Load(tempFile.FilePath);
 
-            Dictionary<string, PackageDependencyGraph> graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, dgSpec, new GraphOptions(generateProjectsOnly: false), new(), CancellationToken.None);
+            Dictionary<string, PackageDependencyGraph> graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, dgSpec, projectsOnly: false, new(), CancellationToken.None);
             graphs.Should().HaveCount(1);
             var graph = graphs.Single().Value;
 
@@ -363,7 +363,7 @@ namespace Common.Test
             var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
             var dependencyGraphSpec = new DependencyGraphSpec();
             dependencyGraphSpec.AddProject(assetsFile.PackageSpec);
-            Dictionary<string, PackageDependencyGraph> graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, dependencyGraphSpec, new GraphOptions(generateProjectsOnly: false), new(), CancellationToken.None);
+            Dictionary<string, PackageDependencyGraph> graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, dependencyGraphSpec, projectsOnly: false, new(), CancellationToken.None);
             graphs.Should().HaveCount(1);
             var graph = graphs.Single().Value;
             return graph;

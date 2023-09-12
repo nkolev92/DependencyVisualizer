@@ -1,9 +1,9 @@
-﻿using Logging;
+﻿using System.Globalization;
+using Logging;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Exceptions;
 using Microsoft.Extensions.Logging;
-using System.Globalization;
 
 namespace DependencyVisualizerTool
 {

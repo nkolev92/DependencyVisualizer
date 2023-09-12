@@ -5,15 +5,15 @@ using Microsoft.Build.Locator;
 using Microsoft.Extensions.Logging;
 using NuGet.Configuration;
 using NuGet.ProjectModel;
-using NuGet.Protocol.Core.Types;
 using NuGet.Protocol;
+using NuGet.Protocol.Core.Types;
 using static DependencyVisualizerTool.MSBuildUtility;
 
 namespace DependencyVisualizerTool
 {
     internal class Program
     {
-        private static CancellationTokenSource CancellationTokenSource = new CancellationTokenSource();
+        private static readonly CancellationTokenSource CancellationTokenSource = new CancellationTokenSource();
 
         public static int Main(string[] args)
         {
@@ -90,7 +90,7 @@ namespace DependencyVisualizerTool
             Dictionary<string, PackageDependencyGraph> dictGraph = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(
                 assetFile,
                 dgspecFile,
-                new GraphOptions(projectsOnly == true),
+                projectsOnly: false,
                 decorators,
                 cancellationToken);
 
