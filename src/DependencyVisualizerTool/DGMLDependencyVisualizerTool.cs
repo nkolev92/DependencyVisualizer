@@ -132,9 +132,13 @@ namespace DependencyVisualizerTool
                             type.ToString();
             }
 
-            public bool Equals(DGMLNode other)
+            public bool Equals(DGMLNode? other)
             {
-                return Id.Equals(other.Id, StringComparison.OrdinalIgnoreCase);
+                if (other != null)
+                {
+                    return Id.Equals(other.Id, StringComparison.OrdinalIgnoreCase);
+                }
+                return false;
             }
         }
 

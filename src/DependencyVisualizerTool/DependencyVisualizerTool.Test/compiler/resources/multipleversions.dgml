@@ -15,6 +15,9 @@
   <Categories>
     <Category Id="Project" Background="Lightblue" StrokeThickness="2" />
     <Category Id="Package" Background="None" StrokeThickness="1" />
-    <CategoryId="VulnerablePackage"Background="Red"StrokeThickness="1"/>
+    <Category Id="VulnerablePackage" Background="None" StrokeThickness="4" Stroke="Red" />
+    <Category Id="DeprecatedPackage" Background="Yellow" StrokeThickness="1" />
+    <Category Id="VulnerableAndDeprecatedPackage" Background="Yellow" StrokeThickness="4" Stroke="Red" />
   </Categories>
+
 </DirectedGraph>

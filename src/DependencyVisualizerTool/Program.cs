@@ -232,7 +232,7 @@ namespace DependencyVisualizerTool
             }
         }
 
-        protected static void myHandler(object sender, ConsoleCancelEventArgs args)
+        protected static void myHandler(object? sender, ConsoleCancelEventArgs args)
         {
             args.Cancel = true;
             CancellationTokenSource.Cancel();
