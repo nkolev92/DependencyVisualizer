@@ -356,6 +356,30 @@ namespace Common.Test
             ValidateBidirectionalEdges(nephewNode.Item1, nugetVersioning, VersionRange.Parse("6.3.0"));
         }
 
+        [Fact]
+        public async Task FromAssetsFile_WithProjectsOnlyOption_IncludesProjectsOnly()
+        {
+            var assetsFileText = TestHelpers.GetResource("Common.Test.compiler.resources.nuget.common.assets.json", GetType());
+
+            var assetsFile = new LockFileFormat().Parse(assetsFileText, Path.GetTempPath());
+            var dependencyGraphSpec = new DependencyGraphSpec();
+            dependencyGraphSpec.AddProject(assetsFile.PackageSpec);
+            var graphs = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(assetsFile, dependencyGraphSpec, projectsOnly: true, new(), CancellationToken.None);
+            graphs.Should().HaveCount(2);
+
+            var graph = graphs.First().Value;
+            graph.Node.Identity.Id.Should().Be("NuGet.Common");
+            graph.Node.ParentNodes.Should().HaveCount(0);
+            graph.Node.ChildNodes.Should().HaveCount(1);
+
+            // Ensure NuGet.Common => NuGet.Frameworks
+            (Node<DependencyNodeIdentity, VersionRange>, VersionRange) nugetFrameworks = graph.Node.ChildNodes[0];
+            nugetFrameworks.Item1.Identity.Should().Be(new DependencyNodeIdentity("NuGet.Frameworks", new NuGetVersion(6, 4, 0, "preview.3.32767"), DependencyType.Project));
+            nugetFrameworks.Item1.ParentNodes.Should().HaveCount(1);
+            nugetFrameworks.Item1.ChildNodes.Should().HaveCount(0);
+            ValidateBidirectionalEdges(graph.Node, nugetFrameworks, VersionRange.Parse("6.4.0-preview.3.32767"));
+        }
+
         private async Task<PackageDependencyGraph> GetOnlyDependencyGraphAsync(string resourceName)
         {
             var assetsFileText = TestHelpers.GetResource(resourceName, GetType());
