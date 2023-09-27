@@ -97,7 +97,7 @@ namespace DependencyVisualizerTool
             Dictionary<string, PackageDependencyGraph> dictGraph = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(
                 assetFile,
                 dgspecFile,
-                projectsOnly: false,
+                projectsOnly == true,
                 decorators,
                 cancellationToken);
 
