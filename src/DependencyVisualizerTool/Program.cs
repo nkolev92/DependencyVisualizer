@@ -51,6 +51,14 @@ namespace DependencyVisualizerTool
                 name: "--projects-only",
                 description: "When used, generates a projects only graph.");
 
+            var simplifyGraph = new Option<bool?>(
+                name: "--simplify-graph",
+                description: "When used, lists out suggestions for removing reduntant project references. " +
+                "A redundant project reference is a direct project reference that appears to be transitive as well.");
+            var dryRun = new Option<bool?>(
+                name: "--dry-run",
+                description: "Should only be used in conjunction with simplify graph. If dry run is used, the suggestions will be printed.");
+
             var rootCommand = new RootCommand("Dependency visualizer app");
             rootCommand.Name = ToolName;
             rootCommand.AddArgument(fileArgument);
@@ -58,20 +66,22 @@ namespace DependencyVisualizerTool
             rootCommand.AddOption(checkVulnerabilityOption);
             rootCommand.AddOption(checkDeprecationOption);
             rootCommand.AddOption(projectsOnlyOption);
+            rootCommand.AddOption(simplifyGraph);
+            rootCommand.AddOption(dryRun);
 
-            rootCommand.SetHandler(async (fileArgument, outputOption, checkVulnerabilityOption, checkDeprecationOption, projectsOnly) =>
+            rootCommand.SetHandler(async (fileArgument, outputOption, checkVulnerabilityOption, checkDeprecationOption, projectsOnly, simplifyGraph, dryRun) =>
             {
 #if DEBUG
                 System.Diagnostics.Debugger.Launch();
 #endif
-                await GenerateGraph(fileArgument!, outputOption, checkVulnerabilityOption, checkDeprecationOption, projectsOnly, CancellationTokenSource.Token);
+                await GenerateGraph(fileArgument!, outputOption, checkVulnerabilityOption, checkDeprecationOption, projectsOnly, simplifyGraph, dryRun, CancellationTokenSource.Token);
             },
-            fileArgument, outputOption, checkVulnerabilityOption, checkDeprecationOption, projectsOnlyOption);
+            fileArgument, outputOption, checkVulnerabilityOption, checkDeprecationOption, projectsOnlyOption, simplifyGraph, dryRun);
 
             return rootCommand.InvokeAsync(args).Result;
         }
 
-        private static async Task<int> GenerateGraph(FileInfo projectFile, string? outputFolder, bool? checkVulnerabilities, bool? checkDeprecation, bool? projectsOnly, CancellationToken cancellationToken)
+        private static async Task<int> GenerateGraph(FileInfo projectFile, string? outputFolder, bool? checkVulnerabilities, bool? checkDeprecation, bool? projectsOnly, bool? simplifyGraph, bool? dryRun, CancellationToken cancellationToken)
         {
             MSBuildLocator.RegisterDefaults();
             string projectExtensionsPath = GetMSBuildProjectExtensionsPath(projectFile.FullName);
@@ -97,9 +107,14 @@ namespace DependencyVisualizerTool
             Dictionary<string, PackageDependencyGraph> dictGraph = await PackageDependencyGraph.GenerateAllDependencyGraphsFromAssetsFileAsync(
                 assetFile,
                 dgspecFile,
-                projectsOnly == true,
+                projectsOnly == true || simplifyGraph == true,
                 decorators,
                 cancellationToken);
+
+            if (simplifyGraph == true)
+            {
+                return SimplifyGraphHelpers.SimplifyGraph(dgspecFile, dictGraph, dryRun: dryRun == true);
+            }
 
             var outputFiles = new List<string>(dictGraph.Count);
             foreach (var keyValuePair in dictGraph)
