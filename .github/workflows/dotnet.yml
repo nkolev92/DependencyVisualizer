@@ -12,7 +12,7 @@ on:
 jobs:
   build:
 
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
@@ -26,3 +26,6 @@ jobs:
       run: dotnet pack --no-build
     - name: Test
       run: dotnet test --no-build --verbosity normal
+    - name: envvar
+      run: printenv NUGET_XMLDOC_MODE
+
