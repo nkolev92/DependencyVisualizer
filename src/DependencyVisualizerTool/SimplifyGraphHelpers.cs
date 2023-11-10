@@ -7,35 +7,42 @@ namespace DependencyVisualizerTool
     {
         public static int SimplifyGraph(DependencyGraphSpec dgspecFile, Dictionary<string, PackageDependencyGraph> dictGraph, bool dryRun)
         {
-            var packageDependencyGraph = dictGraph.First().Value;
-            var projectsInOrder = DependencyGraphSpec.SortPackagesByDependencyOrder(dgspecFile.Projects);
-            Dictionary<string, string> nameToPath = GetProjectNameToProjectPathMap(projectsInOrder);
-
-            int totalReferencesToRemove = 0;
-            int totalReferencesRemoved = 0;
-
-            foreach (var project in projectsInOrder)
+            foreach (var packageDependencyGraph in dictGraph)
             {
-                var name = project.Name;
-                var projectPath = project.FilePath;
-                var node = GetProjectNode(name, packageDependencyGraph);
-                var projectNamesToRemove = FindSuggestedProjectReferencesToRemove(node);
-                var toRemove = projectNamesToRemove.Select(e => Path.GetFileName(nameToPath[e])).ToList();
-                totalReferencesToRemove += toRemove.Count;
+                Console.WriteLine($"Analyzing {packageDependencyGraph.Key} for {packageDependencyGraph.Value}");
+                var projectsInOrder = DependencyGraphSpec.SortPackagesByDependencyOrder(dgspecFile.Projects);
+                Dictionary<string, string> nameToPath = GetProjectNameToProjectPathMap(projectsInOrder);
 
-                if (toRemove.Any())
+                int totalReferencesToRemove = 0;
+                int totalReferencesRemoved = 0;
+
+                foreach (var project in projectsInOrder)
                 {
-                    if (dryRun)
+                    var name = project.Name;
+                    var projectPath = project.FilePath;
+                    var node = GetProjectNode(name, packageDependencyGraph.Value);
+                    if (node == null) // projectsInOrder contains *all* projects, but not every project is a part of every framework.
                     {
-                        Console.WriteLine(projectPath + ": Redundant references: " + string.Join(",", toRemove));
+                        continue;
                     }
-                    else
+                    var projectNamesToRemove = FindSuggestedProjectReferencesToRemove(node);
+                    var toRemove = projectNamesToRemove.Select(e => Path.GetFileName(nameToPath[e])).ToList();
+                    totalReferencesToRemove += toRemove.Count;
+
+                    if (toRemove.Any())
                     {
-                        totalReferencesRemoved += RemoveReferencesFromProject(projectPath, toRemove);
+                        if (dryRun)
+                        {
+                            Console.WriteLine(projectPath + ": Redundant references: " + string.Join(",", toRemove));
+                        }
+                        else
+                        {
+                            totalReferencesRemoved += RemoveReferencesFromProject(projectPath, toRemove);
+                        }
                     }
                 }
+                Console.WriteLine($"References to remove: {totalReferencesToRemove}, References removed: {totalReferencesRemoved}");
             }
-            Console.WriteLine($"References to remove: {totalReferencesToRemove}, References removed: {totalReferencesRemoved}");
 
             return 0;
 
