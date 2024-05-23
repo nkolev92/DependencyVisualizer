@@ -29,6 +29,7 @@
 
 	<ItemGroup>
 		<None Include="..\..\README.md" Pack="true" PackagePath="README.md" />
+		<None Include="..\..\resources\DependencyGraphExample.jpg" Pack="true" PackagePath="resources" />
 	</ItemGroup>
 
     <!-- Ensure that the project files are not getting globbed.-->
