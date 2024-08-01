@@ -6,7 +6,7 @@ This tool helps visualize dependency graph for your project.
 It can generate [.dgml](https://learn.microsoft.com/en-us/visualstudio/modeling/directed-graph-markup-language-dgml-reference?view=vs-2022) file(s) based on the dependency graph of your project.
 The DGML file could be visualized as following:
 
-![DependencyGraphExample](resources/DependencyGraphExample.jpg)
+![DependencyGraphExample](https://raw.githubusercontent.com/nkolev92/DependencyVisualizer/main/resources/DependencyGraphExample.jpg)
 
 - The light blue node represents project and its version.  
 - The white node represents package and the resolved version.
