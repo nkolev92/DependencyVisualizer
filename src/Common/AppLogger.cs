@@ -2,6 +2,9 @@
 
 namespace Logging
 {
+    /// <summary>
+    /// Application Logger
+    /// </summary>
     public class AppLogger
     {
         private static ILogger? _logger;

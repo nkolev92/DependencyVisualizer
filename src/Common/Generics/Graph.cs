@@ -7,8 +7,14 @@
     /// <typeparam name="EdgeCost">The type representing the edge cost from node to node.</typeparam>
     public class Graph<T, EdgeCost>
     {
+        /// <summary>
+        /// Node
+        /// </summary>
         public Node<T, EdgeCost> Node { get; }
 
+        /// <summary>
+        /// Creates a graph
+        /// </summary>
         public Graph(Node<T, EdgeCost> node)
         {
             Node = node;

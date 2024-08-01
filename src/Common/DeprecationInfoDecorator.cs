@@ -5,6 +5,9 @@ using NuGet.Protocol.Core.Types;
 
 namespace Common
 {
+    /// <summary>
+    /// A decorator for deprecated packages. If a node is a package, it will check if the package is deprecated.
+    /// </summary>
     public class DeprecationInfoDecorator : IPackageDependencyNodeDecorator
     {
         private readonly List<SourceRepository> _sourceRepositories;
@@ -13,12 +16,21 @@ namespace Common
         private readonly List<PackageMetadataResource> _packageMetadataResources = new();
         private bool _packageMetadataResourcesAcquired;
 
+        /// <summary>
+        /// Creates a decorator
+        /// </summary>
+        /// <param name="sourceRepositories">The repositories to check for deprecation data.</param>
+        /// <param name="sourceCacheContext">Cache context to be used in remote calls.</param>
+        /// <exception cref="ArgumentNullException">Thrown if either <paramref name="sourceCacheContext"/> or <paramref name="sourceRepositories"/> is null.</exception>
         public DeprecationInfoDecorator(List<SourceRepository> sourceRepositories, SourceCacheContext sourceCacheContext)
         {
             _sourceRepositories = sourceRepositories ?? throw new ArgumentNullException(nameof(sourceRepositories));
             _sourceCacheContext = sourceCacheContext ?? throw new ArgumentNullException(nameof(sourceCacheContext));
         }
 
+        /// <summary>
+        /// Adds deprecation information to the node.
+        /// </summary>
         public async Task DecorateAsync(PackageDependencyNode dependencyNode, CancellationToken cancellationToken)
         {
             if (PackageDeprecationData.TryGetValue(dependencyNode.Identity, out var isPackageDeprecated))

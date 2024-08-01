@@ -4,7 +4,7 @@
 /// Represents a node, or a vertex in the DAG.
 /// </summary>
 /// <typeparam name="T">The type describing the identity of the node.</typeparam>
-/// <typeparam name="EdgeCost">The type denoting the cost for each edge from this node to any other node.</typeparam
+/// <typeparam name="EdgeCost">The type denoting the cost for each edge from this node to any other node.</typeparam>
 public class Node<T, EdgeCost>
 {
     /// <summary>

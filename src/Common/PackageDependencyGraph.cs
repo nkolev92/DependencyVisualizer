@@ -5,13 +5,23 @@ using NuGet.Versioning;
 
 namespace Common
 {
+    /// <summary>
+    /// Reprensets a dependency graph for a project.
+    /// </summary>
     [DebuggerDisplay("{Node}")]
     public class PackageDependencyGraph : Graph<DependencyNodeIdentity, VersionRange>
     {
+        /// <summary>
+        /// Creates a dependency with from a root node.
+        /// </summary>
+        /// <param name="node"></param>
         public PackageDependencyGraph(Node<DependencyNodeIdentity, VersionRange> node) : base(node)
         {
         }
 
+        /// <summary>
+        ///  Generate thedependency graph for a given assets file.
+        /// </summary>
         public static async Task<Dictionary<string, PackageDependencyGraph>> GenerateAllDependencyGraphsFromAssetsFileAsync(
             LockFile assetsFile,
             DependencyGraphSpec dependencyGraphSpec,
